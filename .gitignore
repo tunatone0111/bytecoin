@@ -1,0 +1,8 @@
+.vscode/
+node_modules
+aistartup-env/
+crawlers/mongodb_config.py
+crawlers/__pycache__/
+*~
+*.swp
+*.swo
