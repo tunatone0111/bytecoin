@@ -129,15 +129,16 @@ class NaverCrawler(Crawler):
             raise HTMLElementNotFoundException("Parsing Failed")
 
 
-# example code
-nc = NaverCrawler()
+if __name__ = "__main__":
+    # example code
+    nc = NaverCrawler()
 
-fr = {
-    'year': 2020,
-    'month': 10,
-    'day': 8
-}
+    fr = {
+        'year': 2020,
+        'month': 10,
+        'day': 8
+    }
 
-print('start crawling...')
-nc.crawl('208850', 2, fr)
-print(nc.result)
+    print('start crawling...')
+    nc.crawl('208850', 2, fr)
+    print(nc.result)
