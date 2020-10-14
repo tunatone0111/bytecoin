@@ -10,10 +10,7 @@ from stock_code import read_stock_codes_from_db, get_stock_code
 from urltools import qdic
 from mongodb import get_db
 from multiprocessing import Process
-
-
-class DateNotInRangeException(Exception):
-    pass
+from errors import DateNotInRangeException
 
 
 class Crawler():
