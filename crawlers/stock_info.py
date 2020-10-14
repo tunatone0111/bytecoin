@@ -23,12 +23,6 @@ class Crawler():
         self.headers = {'User-Agent': userAgent}
         self.result = []
 
-    def template(self, stock_code):
-        raise NotImplementedError()
-
-    def crawl(self, stock_code):
-        raise NotImplementedError()
-
 
 class NaverCrawler(Crawler):
     def template(self, stock_code, page):
