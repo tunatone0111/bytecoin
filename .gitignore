@@ -2,10 +2,10 @@
 .vscode/
 
 # for mongodb configurations
-crawlers/mongodb_config.py
+*/mongodb_config.py
 
 # for caches made by python
-crawlers/__pycache__/
+*/__pycache__/
 
 # virtualenv files
 .venv
