@@ -108,7 +108,7 @@ def get_stock_name(stock_code):
         string: found stock name
     """
     Stocks = get_db()['Stocks']
-    stock = Stocks.find({'code': stock_code})
+    stock = Stocks.find_one({'code': stock_code})
     if stock:
         return stock['code']
     else:
