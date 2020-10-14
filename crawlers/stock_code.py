@@ -1,9 +1,11 @@
+# system packages
 from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
 import json
-from mongodb import get_db
 
+# crawler packages
+from mongodb import get_db
 from errors import StockNotFoundException
 
 
