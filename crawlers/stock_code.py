@@ -4,13 +4,15 @@ import pandas as pd
 import json
 from mongodb import get_db
 
-
-class StockNotFoundError:
-    def __str__(self, name):
-        return f"Stock name {name} is invalid"
+from errors import StockNotFoundException
 
 
-def get_stock_codes():
+def get_stocks():
+    """Fetches the list of stock name and codes.
+
+    Returns:
+        stocks (list(dict)): list of stock object
+    """
     print("fetching remote...")
     code_dataframes = pd.read_html(
         'http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13', header=0)[0]
@@ -23,50 +25,90 @@ def get_stock_codes():
         columns={'회사명': 'name', '종목코드': 'code'})
     codes = code_dataframes['code']
     names = code_dataframes['name']
-    stock_codes = []
+    stocks = []
     for i in range(len(names)):
-        stock_codes.append({
+        stocks.append({
             'name': names[i],
             'code': codes[i]
         })
-    return stock_codes
+    return stocks
 
-"""Saves Stock Codes to MongoDB"""
-def save_stock_codes_to_db(stock_codes):
+
+def save_stock_codes_to_db(stocks):
+    """Saves stocks to MongoDB database
+
+    Args:
+        stocks (list(dict)): list of stocks
+    """
     print('connecting to database...')
-    StockCodes = get_db()['StockCodes']
-    print('saving stock codes to database')
+    Stocks = get_db()['Stocks']
+    print('saving stocks to database')
+
     i = 0
-    total = len(stock_codes)
-    for name in stock_codes:
-        print(f'saving stock ({i+1}/{total}) : {name}')
+    total = len(stocks)
+
+    for stock in stocks:
+        print(f'saving stock ({i+1}/{total}) : {stock["name"]}')
         i += 1
-        code = stock_codes[name]
-        found = StockCodes.find_one({"name": name, "code": code})
+
+        found = Stocks.find_one(stock)  # search for matches for {name, code}
         if not found:
-            StockCodes.insert_one({"name": name, "code": code})
+            Stocks.insert_one(stock)
 
-"""Returns Stock Codes from Mongodb"""
+
 def read_stock_codes_from_db():
+    """Reads and returns stocks from MongoDB database
+
+    Returns:
+        list(dict): list of stocks
+    """
+
     print('connecting to database...')
-    StockCodes = get_db()['StockCodes']
+    Stocks = get_db()['Stocks']
     print('reading...')
-    stock_codes_cursor = StockCodes.find()
-    stock_codes = dict()
-    for stock in stock_codes_cursor:
-        stock_codes[stock['name']] = stock['code']
-    print("read done")
-    return stock_codes
 
-"""Gets stock code by stock name"""
+    stocks = Stocks.find()
+    return stocks
+
+
 def get_stock_code(stock_name):
-    stock_codes = read_stock_codes_from_db()
-    try:
-        stock_code = stock_codes[stock_name]
-        return stock_code
-    except KeyError:
-        raise StockNotFoundError(stock_name)
+    """Get stock code by name
+
+    Args:
+        stock_name (string): stock name
+
+    Returns:
+        string: found stock code
+
+    Raises:
+        StockNotFoundException: returns when stock is not found.
+    """
+
+    Stocks = get_db()['Stocks']
+    stock = Stocks.find({'name': stock_name})
+    if stock:
+        return stock['code']
+    else:
+        raise StockNotFoundException(
+            f"Stock code is not found for stock name {stock_name}")
 
 
-if __name__ == "__main__":
-    save_stock_codes_to_db(get_stock_codes_map())
+def get_stock_name(stock_code):
+    """Get stock name by stock code
+
+    Args:
+        stock_code (string): stock code
+
+    Raises:
+        StockNotFoundException: returns when stock is not found
+
+    Returns:
+        string: found stock name
+    """
+    Stocks = get_db()['Stocks']
+    stock = Stocks.find({'code': stock_code})
+    if stock:
+        return stock['code']
+    else:
+        raise StockNotFoundException(
+            f'Stock name is not found for stock code {stock_code}')
