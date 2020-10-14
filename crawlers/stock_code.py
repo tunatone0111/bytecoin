@@ -10,7 +10,7 @@ class StockNotFoundError:
         return f"Stock name {name} is invalid"
 
 
-def get_stock_codes_map():
+def get_stock_codes():
     print("fetching remote...")
     code_dataframes = pd.read_html(
         'http://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13', header=0)[0]
@@ -21,11 +21,14 @@ def get_stock_codes_map():
     code_dataframes = code_dataframes[['회사명', '종목코드']]
     code_dataframes = code_dataframes.rename(
         columns={'회사명': 'name', '종목코드': 'code'})
-    code = code_dataframes['code']
-    name = code_dataframes['name']
-    stock_codes = dict()
-    for i in range(len(name)):
-        stock_codes[name[i]] = code[i]
+    codes = code_dataframes['code']
+    names = code_dataframes['name']
+    stock_codes = []
+    for i in range(len(names)):
+        stock_codes.append({
+            'name': names[i],
+            'code': codes[i]
+        })
     return stock_codes
 
 """Saves Stock Codes to MongoDB"""
