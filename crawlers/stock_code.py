@@ -28,22 +28,7 @@ def get_stock_codes_map():
         stock_codes[name[i]] = code[i]
     return stock_codes
 
-
-def save_stock_codes_to_json(stock_codes):
-    json.dumps(stock_codes)
-    print('writing to file stock_codes.json...')
-    with open('stock_codes.json', 'w', encoding='UTF-8-sig') as file:
-        file.write(json.dumps(stock_codes, ensure_ascii=False))
-    print('successfully completed')
-
-
-def read_stock_codes_from_json():
-    print('reading file from stock_codes.json...')
-    with open("stock_codes.json", encoding="utf-8-sig") as file:
-        stock_codes = json.load(file)
-        return stock_codes
-
-
+"""Saves Stock Codes to MongoDB"""
 def save_stock_codes_to_db(stock_codes):
     print('connecting to database...')
     StockCodes = get_db()['StockCodes']
@@ -58,7 +43,7 @@ def save_stock_codes_to_db(stock_codes):
         if not found:
             StockCodes.insert_one({"name": name, "code": code})
 
-
+"""Returns Stock Codes from Mongodb"""
 def read_stock_codes_from_db():
     print('connecting to database...')
     StockCodes = get_db()['StockCodes']
@@ -70,7 +55,7 @@ def read_stock_codes_from_db():
     print("read done")
     return stock_codes
 
-
+"""Gets stock code by stock name"""
 def get_stock_code(stock_name):
     stock_codes = read_stock_codes_from_db()
     try:
