@@ -8,7 +8,7 @@ crawlers/mongodb_config.py
 crawlers/__pycache__/
 
 # virtualenv files
-crawlers/crawler-venv/
+.venv
 
 # vim files
 *~
