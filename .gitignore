@@ -1,8 +1,16 @@
+# editor configs
 .vscode/
-node_modules
-aistartup-env/
+
+# for mongodb configurations
 crawlers/mongodb_config.py
+
+# for caches made by python
 crawlers/__pycache__/
+
+# virtualenv files
+crawlers/crawler-venv/
+
+# vim files
 *~
 *.swp
 *.swo
