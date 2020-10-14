@@ -13,7 +13,7 @@ def get_stocks():
     """Fetches the list of stock name and codes.
 
     Returns:
-        stocks (list(dict)): list of stock object
+        stocks (list[dict]): list of stock object
     """
     print("fetching remote...")
     code_dataframes = pd.read_html(
@@ -40,7 +40,7 @@ def save_stock_codes_to_db(stocks):
     """Saves stocks to MongoDB database
 
     Args:
-        stocks (list(dict)): list of stocks
+        stocks (list[dict]): list of stocks
     """
     print('connecting to database...')
     Stocks = get_db()['Stocks']
@@ -62,7 +62,7 @@ def read_stock_codes_from_db():
     """Reads and returns stocks from MongoDB database
 
     Returns:
-        list(dict): list of stocks
+        list[dict]: list of stocks
     """
 
     print('connecting to database...')
