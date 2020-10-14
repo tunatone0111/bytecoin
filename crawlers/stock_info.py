@@ -129,6 +129,7 @@ fr = {
     'month': 10,
     'day': 8
 }
+
 p1 = Process(target=nc.crawl_from_date, args=('208850', 10, fr, True))
 p2 = Process(target=nc.crawl_from_date, args=('223220', 10, fr, True))
 p3 = Process(target=nc.crawl_from_date, args=('068270', 10, fr, True))
