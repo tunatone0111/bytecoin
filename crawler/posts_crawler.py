@@ -128,7 +128,7 @@ class NaverCrawler(Crawler):
             raise HTMLElementNotFoundException("Parsing Failed")
 
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     # example code
     nc = NaverCrawler()
 
