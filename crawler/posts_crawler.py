@@ -8,7 +8,6 @@ import json
 
 # crawler packages
 from urltools import get_query
-from mongodb import get_db
 from stock_sources import NAVER
 from errors import DateNotInRangeException, HTMLElementNotFoundException
 
