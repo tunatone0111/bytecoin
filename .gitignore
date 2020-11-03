@@ -6,7 +6,7 @@
 
 # for caches made by python
 */__pycache__/
-
+__pycache__/
 # virtualenv files
 .venv
 
@@ -17,3 +17,6 @@
 
 # idea
 .idea/
+
+# database files
+*.db

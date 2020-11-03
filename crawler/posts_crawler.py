@@ -1,29 +1,25 @@
 # system packages
 from bs4 import BeautifulSoup
-import numpy as np
 import requests
-import pandas as pd
 from fake_useragent import UserAgent
-import json
 
 # crawler packages
-from urltools import get_query
-from stock_sources import NAVER
-from errors import DateNotInRangeException, HTMLElementNotFoundException
+from .urltools import get_query
+from .stock_sources import NAVER
+from .errors import DateNotInRangeException, HTMLElementNotFoundException
 
 # constants
 TWO_DIGIT_TEMPLATE = "{0:0=2d}"
 
 
 class Crawler():
-    def __init__(self):
+    def __init__(self, result_array):
         # initialize fake user agent
         ua = UserAgent(verify_ssl=False)
         userAgent = ua.random
         self.headers = {'User-Agent': userAgent}
 
-        # initialize result array
-        self.result = []
+        self.result = result_array
 
 
 class NaverCrawler(Crawler):
@@ -32,7 +28,7 @@ class NaverCrawler(Crawler):
 
     # crawls until it reaches the date or max pages.
     def crawl(self, stock_code, max_pages, date):
-        self.result = []  # flush result array
+        # self.result = []  # flush result array
 
         for page in range(1, 1 + max_pages):
             print(f"[page] ({page}/{max_pages})")
