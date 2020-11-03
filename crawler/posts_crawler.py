@@ -30,6 +30,7 @@ class NaverCrawler(Crawler):
     def template(self, stock_code, page):
         return f"https://finance.naver.com/item/board.nhn?code={stock_code}&page={page}"
 
+    # crawls until it reaches the date or max pages.
     def crawl(self, stock_code, max_pages, date):
         self.result = []  # flush result array
 
@@ -63,6 +64,7 @@ class NaverCrawler(Crawler):
         for post_link in post_links:
             try:
                 post = self.crawl_post(post_link, date)
+                print(post)
             except DateNotInRangeException as e:
                 print(e)
                 break  # stop crawling when post date is earlier than the limit
@@ -134,10 +136,9 @@ if __name__ == "__main__":
 
     fr = {
         'year': 2020,
-        'month': 10,
+        'month': 9,
         'day': 8
     }
 
     print('start crawling...')
-    nc.crawl('208850', 2, fr)
-    print(nc.result)
+    nc.crawl('005930', 1, fr)
