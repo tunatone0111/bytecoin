@@ -1,38 +1,34 @@
 # system packages
 from bs4 import BeautifulSoup
-import numpy as np
 import requests
-import pandas as pd
 from fake_useragent import UserAgent
-import json
 
 # crawler packages
-from urltools import get_query
-from mongodb import get_db
-from stock_sources import NAVER
-from errors import DateNotInRangeException, HTMLElementNotFoundException
+from .urltools import get_query
+from .stock_sources import NAVER
+from .errors import DateNotInRangeException, HTMLElementNotFoundException
 
 # constants
 TWO_DIGIT_TEMPLATE = "{0:0=2d}"
 
 
 class Crawler():
-    def __init__(self):
+    def __init__(self, result_array):
         # initialize fake user agent
         ua = UserAgent(verify_ssl=False)
         userAgent = ua.random
         self.headers = {'User-Agent': userAgent}
 
-        # initialize result array
-        self.result = []
+        self.result = result_array
 
 
 class NaverCrawler(Crawler):
     def template(self, stock_code, page):
         return f"https://finance.naver.com/item/board.nhn?code={stock_code}&page={page}"
 
+    # crawls until it reaches the date or max pages.
     def crawl(self, stock_code, max_pages, date):
-        self.result = []  # flush result array
+        # self.result = []  # flush result array
 
         for page in range(1, 1 + max_pages):
             print(f"[page] ({page}/{max_pages})")
@@ -64,6 +60,7 @@ class NaverCrawler(Crawler):
         for post_link in post_links:
             try:
                 post = self.crawl_post(post_link, date)
+                print(post)
             except DateNotInRangeException as e:
                 print(e)
                 break  # stop crawling when post date is earlier than the limit
@@ -129,16 +126,15 @@ class NaverCrawler(Crawler):
             raise HTMLElementNotFoundException("Parsing Failed")
 
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     # example code
     nc = NaverCrawler()
 
     fr = {
         'year': 2020,
-        'month': 10,
+        'month': 9,
         'day': 8
     }
 
     print('start crawling...')
-    nc.crawl('208850', 2, fr)
-    print(nc.result)
+    nc.crawl('005930', 1, fr)

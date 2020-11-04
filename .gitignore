@@ -6,7 +6,7 @@
 
 # for caches made by python
 */__pycache__/
-
+__pycache__/
 # virtualenv files
 .venv
 
@@ -14,3 +14,9 @@
 *~
 *.swp
 *.swo
+
+# idea
+.idea/
+
+# database files
+*.db
