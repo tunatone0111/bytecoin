@@ -1,0 +1,148 @@
+* {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+.nav-bar {
+  height: 65px;
+  overflow: hidden;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.nav-bar img.logo {
+  -o-object-fit: cover;
+     object-fit: cover;
+  height: 100%;
+}
+
+.card {
+  margin-left: 28px;
+  margin-right: 28px;
+  padding: 14px;
+  border-radius: 7px;
+  margin-bottom: 20px;
+}
+
+.card .card-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: 1.092px;
+  margin-bottom: 19px;
+}
+
+.card.closed {
+  min-height: 100px;
+}
+
+.stock-card {
+  min-height: 58px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  border-radius: 5px;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-align: stretch;
+      -ms-flex-align: stretch;
+          align-items: stretch;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  margin-bottom: 10px;
+  background-color: white;
+  overflow: hidden;
+}
+
+.stock-card .rank {
+  width: 45px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.stock-card .content {
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.stock-card .content .name {
+  letter-spacing: 0.092px;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 26px;
+}
+
+.stock-card .content .description {
+  font-weight: 300;
+  font-size: 9px;
+  line-height: 13px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  letter-spacing: 0.092px;
+}
+
+.stock-card .tail {
+  width: 15px;
+  -ms-flex-negative: 0;
+      flex-shrink: 0;
+}
+
+.purple {
+  background-color: #6900d2;
+}
+
+.green {
+  background-color: #19ce60;
+}
+
+.red {
+  background-color: #EB5757;
+}
+
+.blue {
+  background-color: #2F80ED;
+}
+/*# sourceMappingURL=style.css.map */
