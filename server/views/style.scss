@@ -49,18 +49,23 @@ $side-margin: 28px;
   }
 }
 
-.stock-card {
-  min-height: 58px;
-  display: flex;
+@mixin inner-card() {
   border-radius: 5px;
+  background-color: white;
+  overflow: hidden;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  min-height: 50px;
+}
 
+.stock-card {
+  @include inner-card();
+  min-height: 58px;
+
+  display: flex;
   flex-direction: row;
   align-items: stretch;
   justify-content: center;
   margin-bottom: 10px;
-
-  background-color: white;
-  overflow: hidden;
 
   .rank {
     width: 45px;
@@ -99,6 +104,61 @@ $side-margin: 28px;
   }
 }
 
+.stock-price-card {
+  @include inner-card();
+  padding: 5px;
+
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: stretch;
+
+  margin-bottom: 7px;
+
+  .meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 75px;
+
+    .name {
+      font-style: normal;
+      font-weight: bold;
+      font-size: 16px;
+      line-height: 17px;
+      /* identical to box height */
+
+      display: flex;
+      align-items: center;
+      letter-spacing: 0.092px;
+    }
+
+    .price-status {
+      font-style: normal;
+      font-weight: bold;
+      font-size: 14px;
+      line-height: 17px;
+      /* identical to box height */
+
+      display: flex;
+      align-items: center;
+      letter-spacing: 0.092px;
+
+      &.up {
+        color: #eb5757;
+      }
+
+      &.down {
+        color: #2f80ed;
+      }
+    }
+  }
+
+  .price-graph {
+  }
+}
+
 .purple {
   background-color: #6900d2;
 }
@@ -108,9 +168,9 @@ $side-margin: 28px;
 }
 
 .red {
-  background-color: #EB5757;
+  background-color: #eb5757;
 }
 
 .blue {
-  background-color: #2F80ED;
+  background-color: #2f80ed;
 }

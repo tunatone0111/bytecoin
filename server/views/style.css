@@ -53,11 +53,16 @@ body {
 }
 
 .stock-card {
+  border-radius: 5px;
+  background-color: white;
+  overflow: hidden;
+  -webkit-box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+          box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  min-height: 50px;
   min-height: 58px;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  border-radius: 5px;
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
       -ms-flex-direction: row;
@@ -69,8 +74,6 @@ body {
       -ms-flex-pack: center;
           justify-content: center;
   margin-bottom: 10px;
-  background-color: white;
-  overflow: hidden;
 }
 
 .stock-card .rank {
@@ -130,6 +133,85 @@ body {
       flex-shrink: 0;
 }
 
+.stock-price-card {
+  border-radius: 5px;
+  background-color: white;
+  overflow: hidden;
+  -webkit-box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+          box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  min-height: 50px;
+  padding: 5px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: row;
+          flex-direction: row;
+  -webkit-box-align: stretch;
+      -ms-flex-align: stretch;
+          align-items: stretch;
+  -webkit-box-pack: stretch;
+      -ms-flex-pack: stretch;
+          justify-content: stretch;
+  margin-bottom: 7px;
+}
+
+.stock-price-card .meta {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  min-width: 75px;
+}
+
+.stock-price-card .meta .name {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 17px;
+  /* identical to box height */
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  letter-spacing: 0.092px;
+}
+
+.stock-price-card .meta .price-status {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 17px;
+  /* identical to box height */
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  letter-spacing: 0.092px;
+}
+
+.stock-price-card .meta .price-status.up {
+  color: #eb5757;
+}
+
+.stock-price-card .meta .price-status.down {
+  color: #2f80ed;
+}
+
 .purple {
   background-color: #6900d2;
 }
@@ -139,10 +221,10 @@ body {
 }
 
 .red {
-  background-color: #EB5757;
+  background-color: #eb5757;
 }
 
 .blue {
-  background-color: #2F80ED;
+  background-color: #2f80ed;
 }
 /*# sourceMappingURL=style.css.map */
