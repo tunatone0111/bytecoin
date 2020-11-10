@@ -5,6 +5,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     SECRET_KEY = os.getenv('BYTECOIN_SECRET_KEY', 'bytecoinsecretkey')
+    DB_PWD = os.getenv('BYTECOIN_DB_PASSWORD')
     DEBUG = False
 
 
@@ -29,3 +30,4 @@ config_by_name = dict(
 )
 
 key = Config.SECRET_KEY
+db_pwd = Config.DB_PWD
