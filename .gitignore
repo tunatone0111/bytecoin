@@ -6,6 +6,7 @@
 
 # for caches made by python
 */__pycache__/
+**/*/_pycache__/
 __pycache__/
 # virtualenv files
 .venv

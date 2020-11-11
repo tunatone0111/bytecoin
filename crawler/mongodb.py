@@ -1,4 +1,4 @@
-from mongodb_config import mongoconfig
+from .mongodb_config import mongoconfig
 import pymongo
 
 

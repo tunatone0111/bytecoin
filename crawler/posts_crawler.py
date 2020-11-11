@@ -2,6 +2,7 @@
 from bs4 import BeautifulSoup
 import requests
 from fake_useragent import UserAgent
+from tqdm import tqdm
 
 # crawler packages
 from .urltools import get_query
@@ -58,10 +59,10 @@ class NaverCrawler(Crawler):
                               a_tag_element['href'])
 
         # visit all post links and crawl them.
-        for post_link in post_links:
+        for post_link in tqdm(post_links):
             try:
                 post = self.crawl_post(post_link, date)
-                print(post)
+                # print(post)
             except DateNotInRangeException as e:
                 print(e)
                 break  # stop crawling when post date is earlier than the limit

@@ -20,7 +20,7 @@ def update_posts_example():
 
 # 멀티스레딩
 def work(stock_code, arr, fr, pages):
-    nc = NaverCrawler(arr)
+    nc = NaverCrawler()
     nc.crawl(stock_code, pages, fr)
 
 
