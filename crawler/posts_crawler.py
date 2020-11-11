@@ -27,7 +27,7 @@ class NaverCrawler(Crawler):
 
     # crawls until it reaches the date or max pages.
     def crawl(self, stock_code, max_pages, date):
-        # self.result = []  # flush result array
+        self.result = []  # flush result array
 
         for page in range(1, 1 + max_pages):
             print(f"[page] ({page}/{max_pages})")
