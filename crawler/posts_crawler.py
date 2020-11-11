@@ -13,13 +13,12 @@ TWO_DIGIT_TEMPLATE = "{0:0=2d}"
 
 
 class Crawler():
-    def __init__(self, result_array):
+    def __init__(self):
         # initialize fake user agent
         ua = UserAgent(verify_ssl=False)
         userAgent = ua.random
         self.headers = {'User-Agent': userAgent}
-
-        self.result = result_array
+        self.result = list()
 
 
 class NaverCrawler(Crawler):
@@ -35,6 +34,8 @@ class NaverCrawler(Crawler):
             done = self.crawl_page(stock_code, page, date)
             if done:
                 break
+
+        return self.result
 
     def crawl_page(self, stock_code, page, date):
         url = self.template(stock_code, page)

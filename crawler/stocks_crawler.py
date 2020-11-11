@@ -5,8 +5,8 @@ import pandas as pd
 import json
 
 # crawler packages
-from mongodb import get_db
-from errors import StockNotFoundException
+from .mongodb import get_db
+from .errors import StockNotFoundException
 
 
 def get_stocks():
