@@ -1,11 +1,13 @@
 # system packages
+import datetime
+import time
 from bs4 import BeautifulSoup
 import numpy as np
 import requests
 import pandas as pd
 from fake_useragent import UserAgent
 import json
-from multiprocessing import Process,Pool
+from multiprocessing import Process, Pool
 import threading
 import multiprocessing
 # crawler packages
@@ -18,8 +20,7 @@ from stocks_crawler import get_stocks
 from concurrent.futures import ThreadPoolExecutor
 # constants
 TWO_DIGIT_TEMPLATE = "{0:0=2d}"
-import time
-import datetime
+
 
 class Crawler():
     def __init__(self):
@@ -39,21 +40,20 @@ class NaverCrawler(Crawler):
         return f"https://finance.naver.com/item/main.nhn?code={stock_code}"
 
     def flush_result(self):
-        #flush result manually
+        # flush result manually
         self.result = multiprocessing.Manager().list()
 
-    def crawl_page(self, stock_code,multi_processed):
+    def crawl_page(self, stock_code, multi_processed):
         url = self.template(stock_code)
         html = requests.get(url, headers=self.headers).text
         soup = BeautifulSoup(html, 'html.parser')
 
         proc_id = os.getpid()
 
-
         # filter dates
         #year = date['year']
-        #month = TWO_DIGIT_TEMPLATE.format(date['month'])  # 1 => 01
-        #day = TWO_DIGIT_TEMPLATE.format(date['day'])  # 9 => 09
+        # month = TWO_DIGIT_TEMPLATE.format(date['month'])  # 1 => 01
+        # day = TWO_DIGIT_TEMPLATE.format(date['day'])  # 9 => 09
         #now_date = f'{year}.{month}.{day}'
 
         now_date = datetime.datetime.now()
@@ -82,10 +82,10 @@ class NaverCrawler(Crawler):
             print(f"price crawling of stock name : {self.find_code_name(stock_code)}"
                   f"  completed by process id : {proc_id} by single processing")
 
-
-    def find_code_name(self,code):
+    def find_code_name(self, code):
         try:
-            code_name_dict = next((item for item in self.stock_code_list if item['code']==code),None)
+            code_name_dict = next(
+                (item for item in self.stock_code_list if item['code'] == code), None)
             code_name = code_name_dict['name']
 
         except:
@@ -107,12 +107,10 @@ if __name__ == "__main__":
     nc = NaverCrawler()
     max_pool = 4
     num_cores = multiprocessing.cpu_count()
-    print('number of cores :      ',num_cores)
+    print('number of cores :      ', num_cores)
 
     stock_code_list = nc.stock_code_list
     print(stock_code_list)
-
-
 
     crawl_list = []
     for i in range(len(stock_code_list)):
@@ -122,18 +120,18 @@ if __name__ == "__main__":
 
     real_crawl_list = []
     for i in crawl_list:
-        real_crawl_list += [[i,True]]
+        real_crawl_list += [[i, True]]
 
     real_crawl_list2 = []
     for i in crawl_list:
-        real_crawl_list2 += [[i,False]]
+        real_crawl_list2 += [[i, False]]
 
     #a = time.time()
-    #for i in range(len(nc.stock_code_list)):
+    # for i in range(len(nc.stock_code_list)):
     #    nc.crawl_page(real_crawl_list2[i][0],real_crawl_list2[i][1])
     #ar = time.time()
     #b = len(nc.result)
-    #nc.flush_result()
+    # nc.flush_result()
 
     g = time.time()
     p = Pool()
@@ -147,10 +145,6 @@ if __name__ == "__main__":
     print('time spent for 16 jobs : ', gr - g)
     for i in nc.result:
         print(i)
-
-
-
-
 
 
 '''    
