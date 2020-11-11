@@ -1,7 +1,5 @@
 import os
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-
 
 class Config:
     SECRET_KEY = os.getenv('BYTECOIN_SECRET_KEY', 'bytecoinsecretkey')

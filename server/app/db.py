@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from ..config import db_pwd
+from .config import db_pwd
 
 
 def get_db():
@@ -8,7 +8,7 @@ def get_db():
         exit()
 
     connection = MongoClient(
-        f"mongodb://aistartup:{db_pwd}@host:27017/bytecoin",
+        f"mongodb://aistartup:{db_pwd}@localhost:27017/bytecoin",
         authSource='admin')
 
     db = connection['bytecoin']
