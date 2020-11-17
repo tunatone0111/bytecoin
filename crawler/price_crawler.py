@@ -10,51 +10,50 @@ import json
 from multiprocessing import Process, Pool
 import threading
 import multiprocessing
+
 # crawler packages
-from urltools import get_query
-from mongodb import get_db
-from stock_sources import NAVER
-from errors import DateNotInRangeException, HTMLElementNotFoundException
+from .urltools import get_query
+from .mongodb import get_db
+from .stock_sources import NAVER
+from .errors import DateNotInRangeException, HTMLElementNotFoundException
 import os
-from stocks_crawler import get_stocks
+from .stocks_crawler import get_stocks
 from concurrent.futures import ThreadPoolExecutor
+
 # constants
 TWO_DIGIT_TEMPLATE = "{0:0=2d}"
 
 
 class Crawler():
+    ua = UserAgent(verify_ssl=False)
+    userAgent = ua.random
+    headers = {'User-Agent': userAgent}
+
     def __init__(self):
         # initialize fake user agent
-        ua = UserAgent(verify_ssl=False)
-        userAgent = ua.random
-        self.headers = {'User-Agent': userAgent}
         # initialize result array
         self.result = multiprocessing.Manager().list()
         #self.result = []
 
-        self.stock_code_list = get_stocks()
-
 
 class NaverCrawler(Crawler):
-    def template(self, stock_code):
-        return f"https://finance.naver.com/item/main.nhn?code={stock_code}"
 
     def flush_result(self):
         # flush result manually
         self.result = multiprocessing.Manager().list()
 
-    def crawl_page(self, stock_code, multi_processed):
-        url = self.template(stock_code)
+    def crawl_page(self, stock, multi_processed):
+        url = f"https://finance.naver.com/item/main.nhn?code={stock['code']}"
         html = requests.get(url, headers=self.headers).text
         soup = BeautifulSoup(html, 'html.parser')
 
         proc_id = os.getpid()
 
         # filter dates
-        #year = date['year']
+        # year = date['year']
         # month = TWO_DIGIT_TEMPLATE.format(date['month'])  # 1 => 01
         # day = TWO_DIGIT_TEMPLATE.format(date['day'])  # 9 => 09
-        #now_date = f'{year}.{month}.{day}'
+        # now_date = f'{year}.{month}.{day}'
 
         now_date = datetime.datetime.now()
 
@@ -67,31 +66,16 @@ class NaverCrawler(Crawler):
             print('something is wrong here 1')
 
         post = {
-            'code': stock_code,  # stock code
-            'name': self.find_code_name(stock_code),
+            'code': stock['code'],  # stock code
+            'name': stock['name'],
             'date': now_date,
             'price': now_price
         }
 
-        self.result.append(post)
+        print(f"price crawling of stock name : {post['name']}",
+              f"  completed by process id : {proc_id} by {'using multiprocessing' if multi_processed else 'single processing'}")
 
-        if multi_processed == True:
-            print(f"price crawling of stock name : {self.find_code_name(stock_code)}"
-                  f"  completed by process id : {proc_id} by using multiprocessing")
-        elif multi_processed != True:
-            print(f"price crawling of stock name : {self.find_code_name(stock_code)}"
-                  f"  completed by process id : {proc_id} by single processing")
-
-    def find_code_name(self, code):
-        try:
-            code_name_dict = next(
-                (item for item in self.stock_code_list if item['code'] == code), None)
-            code_name = code_name_dict['name']
-
-        except:
-            print('Something is wrong')
-
-        return code_name
+        return post
 
 
 '''
