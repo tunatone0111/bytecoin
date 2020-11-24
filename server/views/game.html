@@ -1,0 +1,41 @@
+{% extends "./layout.html" %}
+
+{% block body %}
+    <div class="nav-bar">
+      <img class="logo" src="logo.png" alt="">
+    </div>
+    <div class="card purple">
+      <div class="card-title">주식 게임</div>
+      <div class="stock-price-card">
+        <div class="meta">
+            <div class="name">주식 A</div>
+            <div class="price-status up">
+                <img src="icons/arrow_drop_up_24px_outlined.svg" alt="" class="icon">
+                <span>
+                    XXX
+                </span>
+            </div>
+        </div>
+        <div class="price-graph">
+          <canvas id="priceChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <script>
+      let labels = [
+        1,2,3,4,5,6,7,8,9,10
+      ];
+
+      let datasets = [
+        {
+          label: "Stock 1",
+          data: [
+            1,2,3,4,5,6,7,8,1,2
+          ]
+        },
+      ];
+    </script>
+    <script src="{{ url_for('static', filename='game.js') }}"></script>
+</body>
+</html>
+{% endblock %}

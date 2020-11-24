@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script src="script.js"></script>
-    <title>Bytecoin</title>
-</head>
-<body>
+{% extends "./layout.html" %}
+
+{% block body %}
     <div class="nav-bar">
         <img class="logo" src="logo.png" alt="">
     </div>
@@ -32,38 +23,17 @@
     </div>
     <div class="card green closed stock-list">
         <div class="card-title">NAVER</div>
+        {% for stock in stocks %}
         <div class="stock-card">
-            <div class="rank">1</div>
+            <div class="rank">{{ loop.index }}</div>
             <div class="content">
-                <div class="name">삼성전자</div>
-                <div class="description">keyword, keyword, keyword</div>
+                <div class="name">{{ stock['name'] }}</div>
+                <div class="description">{{ stock['price'][0]['price'] }}</div>
             </div>
             <div class="tail red"></div>
         </div>
-        <div class="stock-card">
-            <div class="rank">2</div>
-            <div class="content">
-                <div class="name">라온라온</div>
-                <div class="description">keyword, keyword, keyword</div>
-            </div>
-            <div class="tail blue"></div>
-        </div>
-        <div class="stock-card">
-            <div class="rank">3</div>
-            <div class="content">
-                <div class="name">삼성전자</div>
-                <div class="description">keyword, keyword, keyword</div>
-            </div>
-            <div class="tail red"></div>
-        </div>
-        <div class="stock-card">
-            <div class="rank">4</div>
-            <div class="content">
-                <div class="name">라온라온</div>
-                <div class="description">keyword, keyword, keyword</div>
-            </div>
-            <div class="tail blue"></div>
-        </div>
+        {% endfor %}
     </div>
 </body>
 </html>
+{% endblock %}

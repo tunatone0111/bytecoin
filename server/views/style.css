@@ -212,6 +212,10 @@ body {
   color: #2f80ed;
 }
 
+.stock-price-card .price-graph {
+  width: 100%;
+}
+
 .purple {
   background-color: #6900d2;
 }
