@@ -12,9 +12,10 @@ import multiprocessing
 from server.app.config import kospi_100
 
 db = get_db()
-stocks = db['Stocks']
+stocks = db['StocksSample']
+posts = db['Posts']
 
-target_stocks = list(stocks.find({'name': {'$in': kospi_100}}))
+target_stocks = list(stocks.find())
 print(target_stocks)
 
 yesterday = date.today() - timedelta(1)
@@ -49,6 +50,7 @@ def crawl_posts(crawl_list):
     print('start crawling...')
     for stock in crawl_list:
         res = nc.crawl(stock['code'], MAX_PAGE, fr)
+        posts.insert_many(res)
 
 if __name__ == '__main__':
     crawl_posts(target_stocks)
