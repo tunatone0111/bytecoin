@@ -131,7 +131,7 @@ if __name__ == "__main__":
         print(i)
 
 
-'''    
+'''
     #nc.crawl('005930', 2, fr)
     db = get_db()
     coll = db.stock
