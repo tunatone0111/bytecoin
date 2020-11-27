@@ -1,11 +1,12 @@
 from crawler.stocks_crawler import get_stocks, save_stock_codes_to_db
 from crawler.posts_crawler import NaverCrawler
-from crawler.price_crawler import NaverCrawler as Price_Crawler
+from crawler.new_price_crawler import get_last7_price_by_code
 import os
 import json
 import sys
 from server.app.db import get_db
 from tqdm import tqdm
+from tqdm.contrib import tmap
 from tqdm.contrib.concurrent import process_map
 from datetime import date, timedelta
 import multiprocessing
@@ -27,22 +28,16 @@ fr = dict(
 print('crawling target day: ', fr)
 
 MAX_PAGE = 1
-pc = Price_Crawler()
+# pc = Price_Crawler()
+
 
 def crawl_price(crawl_list):
     print('start crawling...')
     for stock in crawl_list:
-        result = pc.crawl_page(stock=stock, multi_processed=True)
-        cur_price = {"time": result['date'], "price": result['price']}
-        if 'price' not in stock or stock['price'] is None:
-            stock['price'] = [cur_price]
-        else:
-            if stock['price'][0]['price'] == cur_price['price']:
-                continue
-            stock['price'] = stock['price'][:99]
-            stock['price'].insert(0, cur_price)
-        stocks.update_one({'_id': stock['_id']}, {
-                        "$set": {'price': stock['price']}})
+        result = get_last7_price_by_code(stock['code'])
+        db['Stocks'].update_one({'_id': stock['_id']}, {
+                                "$set": {'price': result}})
+
 
 def crawl_posts(crawl_list):
     nc = NaverCrawler()
@@ -52,5 +47,6 @@ def crawl_posts(crawl_list):
         res = nc.crawl(stock['code'], MAX_PAGE, fr)
         posts.insert_many(res)
 
+
 if __name__ == '__main__':
-    crawl_posts(target_stocks)
+    crawl_price(target_stocks)

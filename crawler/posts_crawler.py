@@ -126,7 +126,7 @@ class NaverCrawler(Crawler):
             # catches if any HTML element does not exist.
             print(e)
             raise HTMLElementNotFoundException("Parsing Failed")
-
+        
 
 if __name__ == "__main__":
     # example code
