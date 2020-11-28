@@ -1,10 +1,13 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, redirect, Blueprint
 from pymongo import MongoClient
 
 from .config import config_by_name, kospi_100
 from .db import get_db
-from .stock_service import get_top5_stocks
-import app.user_service
+
+from .api.game import game
+from .api.stocks import stocks
+
+from .api.services.user_service import read_users
 
 
 def create_app(config_name):
@@ -16,36 +19,19 @@ def create_app(config_name):
     app.config['JSON_AS_ASCII'] = False
 
     db = get_db()
+    app.register_blueprint(game, url_prefix='/api/game')
+    app.register_blueprint(stocks, url_prefix='/api/stocks')
 
     @app.route('/')
     def index():
-        stocks = get_top5_stocks()
-        return render_template('index.html', stocks=stocks)
+        return 'index'
 
-    @app.route("/game", methods=["GET"])
+    @app.route("/game")
     def get_games():
-        return render_template("game.html")
+        return 'game'
 
-    def handle_trade(sevice_func):
-        stock_code = request.form.get('stockId')
-        count = int(request.form.get('count'))
-        if not service_func(stock_code, count):
-            print('failed')
-
-    @app.route('/api/buy', methods=["POST"])
-    def buy_stock():
-        handle_trade(user_service.buy_stock)
-        return redirect(url_for('/game'))
-
-    @app.route('/api/sell', methods=["POST"])
-    def sell_stock():
-        handle_trade(user_service.sell_stock)
-        return redirect(url_for('/game'))
-
-    @app.route('/stocks')
-    def get_stocks():
-        result = list(db['Stocks'].find(
-            {'name': {'$in': kospi_100}}, {'name': True, 'code': True, '_id': False, 'price': True}))
-        return {"data": result}
+    @app.route('/users')
+    def get_users():
+        return {'users': read_users()}
 
     return app

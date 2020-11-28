@@ -1,5 +1,5 @@
-from .db import get_db
-from .config import kospi_100
+from ...db import get_db
+from ...config import kospi_100
 
 demo_flag = True
 stocks_coll_name = 'StocksSample' if demo_flag else 'Stocks'
@@ -20,8 +20,12 @@ def read_top5():
     return list(stocks.aggregate([{'$project': dto_projection}, {'$sort': {'label': -1}}, {'$limit': 5}]))
 
 
+def read_many(codes):
+    return list(stocks.find({'code': {'$in': codes}}, {'_id': False, 'code': True, 'price': True}))
+
+
 def read_one(code):
-    return list(stocks.find({'code': code}, dto_projection))
+    return stocks.find_one({'code': code}, dto_projection)
 
 
 def get_stock_list():

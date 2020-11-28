@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, make_response
 
 from ..config import kospi_100
-from ..stock_service import read_all, read_top5, read_one
+from .services.stock_service import read_all, read_top5, read_one
 
 stocks = Blueprint('stocks', __name__)
 
