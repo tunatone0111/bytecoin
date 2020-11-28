@@ -23,8 +23,8 @@ def get_top():
 @stocks.route('/<code>')
 def get_one(code):
     result = read_one(code)
-    assert(any(result))
-    return jsonify(stocks=result)
+    assert(result)
+    return jsonify(stock=result)
 
 
 @stocks.errorhandler(AssertionError)
