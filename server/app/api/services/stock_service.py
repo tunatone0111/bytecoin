@@ -1,15 +1,11 @@
 from ...db import get_db
 from ...config import kospi_100
 
-demo_flag = True
-stocks_coll_name = 'StocksSample' if demo_flag else 'Stocks'
-
 db = get_db()
-stocks = db[stocks_coll_name]
+stocks = db['StocksWithLabel']
 posts = db['Posts']
 
-dto_projection = {'name': True, 'code': True,
-                  '_id': False, 'label': True}
+dto_projection = {'name': True, 'code': True, '_id': False, 'label': True, 'numPosts': True}
 
 
 def read_all():
@@ -17,11 +13,11 @@ def read_all():
 
 
 def read_top5():
-    return list(stocks.aggregate([{'$project': dto_projection}, {'$sort': {'label': -1}}, {'$limit': 5}]))
+    return list(stocks.aggregate([{'$project': dto_projection}, {'$sort': {'numPosts': -1}}, {'$limit': 5}]))
 
 
 def read_many(codes):
-    return list(stocks.find({'code': {'$in': codes}}, {'_id': False, 'code': True, 'price': True}))
+    return list(stocks.find({'code': {'$in': codes}}, dto_projection))
 
 
 def read_one(code):
