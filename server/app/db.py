@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
 from .config import db_pwd
 
 
@@ -7,9 +7,15 @@ def get_db():
         print("FATAL: Please set BYTECOIN_DB_PASSWORD env var")
         exit()
 
-    connection = MongoClient(
-        f"mongodb://aistartup:{db_pwd}@localhost:27017/bytecoin",
-        authSource='admin')
+    try:
+        connection = MongoClient(
+            f"mongodb://aistartup:{db_pwd}@localhost:27017/bytecoin",
+            authSource='admin')
+        connection.server_info()
+        db = connection['bytecoin']
 
-    db = connection['bytecoin']
-    return db
+        return db
+
+    except errors.ServerSelectionTimeoutError as err:
+        print(err)
+        exit()
