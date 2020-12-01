@@ -21,12 +21,12 @@ import json
 from multiprocessing import Process, Pool
 import threading
 import multiprocessing
+import os
 # crawler packages
 from ..urltools import get_query
 from ..mongodb import get_db
 from ..stock_sources import NAVER
 from ..errors import DateNotInRangeException, HTMLElementNotFoundException
-import os
 from ..stocks_crawler import get_stocks
 from concurrent.futures import ThreadPoolExecutor
 # constants

@@ -1,22 +1,26 @@
 # system packages
-import requests
-from fake_useragent import UserAgent
+
 from bs4 import BeautifulSoup
 import numpy as np
+import requests
 import pandas as pd
+from fake_useragent import UserAgent
 import json
-import multiprocessing
-import threading
 from multiprocessing import Process, Pool
+import threading
+import multiprocessing
 from concurrent.futures import ThreadPoolExecutor
 import time
 import csv
 import torch
-from transformers import BertTokenizer, get_linear_schedule_with_warmup
+from transformers import BertTokenizer
 from transformers import BertForSequenceClassification, AdamW, BertConfig
+from transformers import get_linear_schedule_with_warmup
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras_preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
+import pandas as pd
+import numpy as np
 import random
 import time
 import datetime
@@ -24,7 +28,6 @@ import os
 import argparse
 import matplotlib.pyplot as plt
 import random
-
 # crawler packages
 from ..urltools import get_query
 from ..mongodb import get_db
@@ -32,15 +35,15 @@ from ..stock_sources import NAVER
 from ..errors import DateNotInRangeException, HTMLElementNotFoundException
 from ..stocks_crawler import get_stocks
 from .posts_crawler_Hahversion1 import NaverCrawler
-
-# constants
 from .bert_classificaion_main import Bert_classification
 
+# constants
 how_old = 10
+from .bert_config import KOSPI100
 
 
 class multicrawl_and_return():
-    def __init__(self, num_pages=1, days=0, hours=0, minutes=10, num_process=multiprocessing.cpu_count(), multiprocessing_flag=True, num_thread=5, MAX_LEN=65, epoch=1, batch_size=32, timed=False, when=None):
+    def __init__(self, num_pages=1, days=0, hours=0, minutes=10, model_load=None, num_process=multiprocessing.cpu_count(), multiprocessing_flag=True, num_thread=5, MAX_LEN=65, epoch=1, batch_size=32, timed=False, when=None):
 
         if timed == True:
             self.date = datetime.datetime.now() - datetime.timedelta(days=days,
@@ -50,13 +53,17 @@ class multicrawl_and_return():
         self.MAX_LEN = MAX_LEN
         self.epoch = epoch
         self.batch_size = batch_size
+        self.model_load = model_load
 
         self.num_process = num_process
         self.num_pages = num_pages
         self.num_thread = num_thread
         self.multiprocessing_flag = multiprocessing_flag
 
-        self.stock_code_lst = get_stocks()
+        db = get_db()
+        coll = db['Stocks']
+        self.stock_code_lst = list(coll.find({"name": {"$in": KOSPI100}}, {"_id": False, "name": True, "code": True}))
+
         self.crawl_lst = self.make_crawl_lst()
 
         self.model = NaverCrawler()
@@ -123,8 +130,24 @@ class multicrawl_and_return():
         # 문장을 MAX_LEN 길이에 맞게 자르고, 모자란 부분을 패딩 0으로 채움
         input_ids = pad_sequences(input_ids, maxlen=self.MAX_LEN, dtype="long", truncating="post",
                                   padding="post")
-        bert = Bert_classification(self.epoch, self.batch_size)
-        label_lst = bert.work(input_ids)
+        if self.model_load == None:
+            bert = Bert_classification(
+                epoch=self.epoch, batch_size=self.batch_size)
+            print('----------------------------------------훈련되지 않은 모델을 사용합니다!-------------------------------------')
+            print('----------------------------------------훈련되지 않은 모델을 사용합니다!-------------------------------------')
+            print('----------------------------------------훈련되지 않은 모델을 사용합니다!-------------------------------------')
+            print('----------------------------------------훈련되지 않은 모델을 사용합니다!-------------------------------------')
+            print('----------------------------------------훈련되지 않은 모델을 사용합니다!-------------------------------------')
+            label_lst = bert.work(input_ids)
+        else:
+            bert = Bert_classification(
+                epoch=self.epoch, batch_size=self.batch_size, model_load_location=self.model_load)
+
+            print('----------------------------------------훈련된 모델을 사용합니다--------------------------------------------')
+            print('----------------------------------------훈련된 모델을 사용합니다--------------------------------------------')
+            print('----------------------------------------훈련된 모델을 사용합니다--------------------------------------------')
+            print('----------------------------------------훈련된 모델을 사용합니다--------------------------------------------')
+            label_lst = bert.work(input_ids)
 
         return label_lst
 
@@ -139,7 +162,7 @@ class multicrawl_and_return():
     def save_result2db(self):
         contents_lst = self.combine_label_and_contents_lst()
         db = get_db()
-        coll = db.stock
+        coll = db['Posts']
         coll.insert_many(contents_lst)
 
         self.model.flush_result()
@@ -152,6 +175,10 @@ class multicrawl_and_return():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
+    # model path /home/aistartup/bytecoin/microservice/bert/models/movie.tar
+
+    parser.add_argument('-M', '--modelload_loc', dest='model_load_loc', default=None, type=str, help='Location of model you want to load, format'
+                        ': ~/home/abc123/model.tar')
     parser.add_argument('-t', '--threads', dest='threads',
                         default=5, type=int, help='쓰레드 개수를 입력하세요, 추천 : 5')
     parser.add_argument('-p', '--process', dest='process',
@@ -175,10 +202,11 @@ if __name__ == '__main__':
     way = args.way
     num_thread = args.threads
     num_process = args.process
+    model_load = args.model_load_loc
 
     if way == 'timed':
-        multicrawl = multicrawl_and_return(batch_size=batch_size, days=days, hours=hours,
-                                           minutes=minutes, timed=True, num_thread=num_thread, num_process=num_process)
+        multicrawl = multicrawl_and_return(batch_size=batch_size, days=days, hours=hours, minutes=minutes,
+                                           timed=True, model_load=model_load, num_thread=num_thread, num_process=num_process)
         do_it = multicrawl.save_result2db()
         print(multicrawl.model.result)
     elif way == 'date':
@@ -186,7 +214,7 @@ if __name__ == '__main__':
         date = input()
         datetime_date = datetime.datetime.strptime(date, '%Y-%m-%d-%H-%M')
         multicrawl = multicrawl_and_return(batch_size=batch_size, days=days, hours=hours, minutes=minutes,
-                                           timed=False, when=datetime_date, num_thread=num_thread, num_process=num_process)
+                                           timed=False, model_load=model_load, when=datetime_date, num_thread=num_thread, num_process=num_process)
         do_it = multicrawl.save_result2db()
         print(multicrawl.model.result)
     else:

@@ -20,20 +20,22 @@ import torch.nn.functional as F
 #test = pd.read_csv('/home/awefjio12345/Downloads/nsmc-master/ratings_test.txt',sep = '\t')
 #test = pd.read_csv('/home/awefjio12345/Downloads/nsmc-master/test.csv',sep = ',',names=['document','label'],header=None)
 
-train_set_location = 'your train set file location'
-test_set_location = 'your test set file location'
-model_save_location = 'your model save location'
-model_load_location = 'your model load location'
+#train_set_location = 'your train set file location'
+#test_set_location = 'your test set file location'
+#model_save_location = 'your model save location'
+#model_load_location = 'your model load location'
 
-train = pd.read_csv(train_set_location, sep='\t')
-test = pd.read_csv(test_set_location, sep='\t')
+#train = pd.read_csv(train_set_location,sep = '\t')
+#test = pd.read_csv(test_set_location,sep = '\t')
 
 
 class Bert_classification():
-    def __init__(self, epoch, batch_size):
+    def __init__(self, epoch, batch_size, model_save_location=None, model_load_location=None):
         # 입력 토큰의 최대 시퀀스 길이
         self.MAX_LEN = 128
         self.batch_size = batch_size
+        self.model_save_location = model_save_location
+        self.model_load_location = model_load_location
 
         # # GPU 디바이스 이름 구함
         # self.device_name = tf.test.gpu_device_name()
@@ -54,13 +56,16 @@ class Bert_classification():
             print('No GPU available, using the CPU instead.')
 
         # 분류를 위한 BERT 모델 생성
-        self.model = BertForSequenceClassification.from_pretrained(
-            "bert-base-multilingual-cased", num_labels=2)
-        # self.model.cuda()
-
-        checkpoint = torch.load(model_load_location)
-        self.model.load_state_dict(checkpoint['model'])
-        self.model.cuda()
+        if model_load_location == None:
+            self.model = BertForSequenceClassification.from_pretrained(
+                "bert-base-multilingual-cased", num_labels=2)
+            # self.model.cuda()
+        else:
+            self.model = BertForSequenceClassification.from_pretrained(
+                "bert-base-multilingual-cased", num_labels=2)
+            checkpoint = torch.load(model_load_location, map_location=self.device)
+            self.model.load_state_dict(checkpoint['model'])
+            # self.model.cuda()
 
         # 옵티마이저 설정
         self.optimizer = AdamW(self.model.parameters(),
@@ -260,7 +265,7 @@ class Bert_classification():
         # hh:mm:ss으로 형태 변경
         return str(datetime.timedelta(seconds=elapsed_rounded))
 
-    def train_and_validate(self):
+    def train_and_validate(self, train):
         train_data, train_sampler, train_dataloader, validation_data, validation_sampler, validation_dataloader\
             = self.get_train_validation_set(train)
 
@@ -376,7 +381,7 @@ class Bert_classification():
                         print('saving models.....')
                         two_for_break = True
                         torch.save({'model': self.model.state_dict(), 'optimizer': self.optimizer.state_dict()},
-                                   model_save_location + str(step)+'_' + str(epoch_i + 1)+str(eval_accuracy/nb_eval_steps)+'2020_11_23' + '.tar')
+                                   self.model_save_location + str(step)+'_' + str(epoch_i + 1)+str(eval_accuracy/nb_eval_steps)+'2020_11_23' + '.tar')
                         print('saving models completed!')
                     print("  Validation took: {:}".format(
                         self.format_time(time.time() - t0)))
@@ -440,7 +445,7 @@ class Bert_classification():
         print("")
         print("Training complete!")
 
-    def test(self):
+    def test(self, test):
         test_data, test_sampler, test_dataloader = self.get_test_set(test)
 
         # 시작 시간 설정
@@ -558,16 +563,36 @@ if __name__ == '__main__':
                         type=int, help='batch_size number!')
     parser.add_argument('-w', '--way', dest='way', default='train', type=str, choices=['train', 'test'],
                         help='what do you want to do? train or test?')
+
+    parser.add_argument('--train_loc', dest='train_loc',
+                        type=str, help='where is your train set location?')
+    parser.add_argument('--test_loc', dest='test_loc',
+                        type=str, help='where is your test set location?')
+    parser.add_argument('--modelsave_loc', dest='modelsave_loc',
+                        required=True, type=str, help='Where you want to save model?')
+    parser.add_argument('--modelload_loc', dest='modelload_loc',
+                        default=None, type=str, help='Location of model you want to load')
     args = parser.parse_args()
 
     epoch = args.epoch
     batch_size = args.batch_size
     way = args.way
+    trainset_loc = args.train_loc
+    testset_loc = args.test_loc
+    model_save_loc = args.modelsave_loc
+    model_load_loc = args.modelload_loc
+
     print(f'doing {way} with epcoh : {epoch} and batch_size : {batch_size}')
 
-    bert = Bert_classification(epoch=epoch, batch_size=batch_size)
-
     if way == 'train':
-        bert.train_and_validate()
+        train_set = pd.read_csv(trainset_loc, sep='\t')
+        bert = Bert_classification(epoch=epoch, batch_size=batch_size,
+                                   model_save_location=model_save_loc, model_load_location=model_load_loc)
+        bert.train_and_validate(train=train_set)
+    elif way == 'test':
+        test_set = pd.read_csv(testset_loc, sep='\t')
+        bert = Bert_classification(epoch=epoch, batch_size=batch_size,
+                                   model_save_location=model_save_loc, model_load_location=model_load_loc)
+        bert.test(test=test_set)
     else:
-        bert.test()
+        print('NOOOO! input is train or test only!')
