@@ -3,7 +3,7 @@ import torch
 from transformers import BertTokenizer
 from transformers import BertForSequenceClassification, AdamW, BertConfig
 from transformers import get_linear_schedule_with_warmup
-from torch.utils.data import TensorDataset,DataLoader,RandomSampler,SequentialSampler
+from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras_preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
@@ -26,11 +26,12 @@ test_set_location = 'your test set file location'
 model_save_location = 'your model save location'
 model_load_location = 'your model load location'
 
-train = pd.read_csv(train_set_location,sep = '\t')
-test = pd.read_csv(test_set_location,sep = '\t')
+train = pd.read_csv(train_set_location, sep='\t')
+test = pd.read_csv(test_set_location, sep='\t')
+
 
 class Bert_classification():
-    def __init__(self,epoch,batch_size):
+    def __init__(self, epoch, batch_size):
         # 입력 토큰의 최대 시퀀스 길이
         self.MAX_LEN = 128
         self.batch_size = batch_size
@@ -54,8 +55,9 @@ class Bert_classification():
             print('No GPU available, using the CPU instead.')
 
         # 분류를 위한 BERT 모델 생성
-        self.model = BertForSequenceClassification.from_pretrained("bert-base-multilingual-cased", num_labels=2)
-        #self.model.cuda()
+        self.model = BertForSequenceClassification.from_pretrained(
+            "bert-base-multilingual-cased", num_labels=2)
+        # self.model.cuda()
 
         checkpoint = torch.load(model_load_location)
         self.model.load_state_dict(checkpoint['model'])
@@ -63,45 +65,48 @@ class Bert_classification():
 
         # 옵티마이저 설정
         self.optimizer = AdamW(self.model.parameters(),
-                          lr=2e-5,  # 학습률
-                          eps=1e-8  # 0으로 나누는 것을 방지하기 위한 epsilon 값
-                          )
+                               lr=2e-5,  # 학습률
+                               eps=1e-8  # 0으로 나누는 것을 방지하기 위한 epsilon 값
+                               )
 
         # 에폭수
         self.epochs = epoch
 
-        #훈련중프린트주기
+        # 훈련중프린트주기
         self.train_print_period = 500
 
-        #테스트중프린트주기
+        # 테스트중프린트주기
         self.test_print_period = 100
 
-    def sentences_conversion(self,raw_texts):
+    def sentences_conversion(self, raw_texts):
         # 리뷰 문장 추출
         sentences = raw_texts['document']
-        print('setenses is :   ',sentences)
+        print('setenses is :   ', sentences)
         print(type(sentences))
 
         # BERT의 입력 형식에 맞게 변환
-        sentences = ["[CLS] " + str(sentence) + " [SEP]" for sentence in sentences]
+        sentences = ["[CLS] " + str(sentence) +
+                     " [SEP]" for sentence in sentences]
         sentences[:10]
 
         # 라벨 추출
         labels = raw_texts['label'].values
-        print('labels is :    ',labels)
+        print('labels is :    ', labels)
 
         # BERT의 토크나이저로 문장을 토큰으로 분리
-        tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased', do_lower_case=False)
+        tokenizer = BertTokenizer.from_pretrained(
+            'bert-base-multilingual-cased', do_lower_case=False)
         tokenized_texts = [tokenizer.tokenize(sent) for sent in sentences]
         print(sentences[0])
         print(tokenized_texts[0])
 
         # 토큰을 숫자 인덱스로 변환
-        input_ids = [tokenizer.convert_tokens_to_ids(x) for x in tokenized_texts]
+        input_ids = [tokenizer.convert_tokens_to_ids(
+            x) for x in tokenized_texts]
 
         # 문장을 MAX_LEN 길이에 맞게 자르고, 모자란 부분을 패딩 0으로 채움
         input_ids = pad_sequences(input_ids, maxlen=self.MAX_LEN, dtype="long", truncating="post",
-                                        padding="post")
+                                  padding="post")
         print(input_ids[0])
 
         # 어텐션 마스크 초기화
@@ -115,22 +120,24 @@ class Bert_classification():
 
         print(attention_masks[0])
 
-        return input_ids,attention_masks,labels
+        return input_ids, attention_masks, labels
 
-    def get_ready_4realwork(self,contents_lst):
-
+    def get_ready_4realwork(self, contents_lst):
 
         # BERT의 입력 형식에 맞게 변환
-        sentences = ["[CLS] " + str(sentence) + " [SEP]" for sentence in contents_lst]
+        sentences = ["[CLS] " + str(sentence) +
+                     " [SEP]" for sentence in contents_lst]
         sentences[:10]
         # BERT의 토크나이저로 문장을 토큰으로 분리
-        tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased', do_lower_case=False)
+        tokenizer = BertTokenizer.from_pretrained(
+            'bert-base-multilingual-cased', do_lower_case=False)
         tokenized_texts = [tokenizer.tokenize(sent) for sent in sentences]
         print(sentences[0])
         print(tokenized_texts[0])
 
         # 토큰을 숫자 인덱스로 변환
-        input_ids = [tokenizer.convert_tokens_to_ids(x) for x in tokenized_texts]
+        input_ids = [tokenizer.convert_tokens_to_ids(
+            x) for x in tokenized_texts]
 
         # 문장을 MAX_LEN 길이에 맞게 자르고, 모자란 부분을 패딩 0으로 채움
         input_ids = pad_sequences(input_ids, maxlen=self.MAX_LEN, dtype="long", truncating="post",
@@ -159,12 +166,14 @@ class Bert_classification():
         # 학습시 배치 사이즈 만큼 데이터를 가져옴
         work_data = TensorDataset(work_inputs, work_masks)
         work_sampler = SequentialSampler(work_data)
-        work_dataloader = DataLoader(work_data, sampler=work_sampler, batch_size=self.batch_size)
+        work_dataloader = DataLoader(
+            work_data, sampler=work_sampler, batch_size=self.batch_size)
 
         return work_data, work_sampler, work_dataloader
 
-    def get_train_validation_set(self,raw_texts):
-        input_ids, attention_masks, labels = self.sentences_conversion(raw_texts=raw_texts)
+    def get_train_validation_set(self, raw_texts):
+        input_ids, attention_masks, labels = self.sentences_conversion(
+            raw_texts=raw_texts)
 
         # 훈련셋과 검증셋으로 분리
         train_inputs, validation_inputs, train_labels, validation_labels = train_test_split(input_ids,
@@ -178,9 +187,9 @@ class Bert_classification():
                                                                random_state=2018,
                                                                test_size=0.1)
 
-        print('train_input is : ',train_inputs.shape)
-        print('train_labesl is : ',train_labels.shape)
-        print('train_masks is : ',len(train_masks))
+        print('train_input is : ', train_inputs.shape)
+        print('train_labesl is : ', train_labels.shape)
+        print('train_masks is : ', len(train_masks))
         # 데이터를 파이토치의 텐서로 변환
         train_inputs = torch.tensor(train_inputs)
         train_labels = torch.tensor(train_labels)
@@ -200,20 +209,24 @@ class Bert_classification():
         # 학습시 배치 사이즈 만큼 데이터를 가져옴
         train_data = TensorDataset(train_inputs, train_masks, train_labels)
         train_sampler = RandomSampler(train_data)
-        train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=self.batch_size)
+        train_dataloader = DataLoader(
+            train_data, sampler=train_sampler, batch_size=self.batch_size)
 
-        validation_data = TensorDataset(validation_inputs, validation_masks, validation_labels)
+        validation_data = TensorDataset(
+            validation_inputs, validation_masks, validation_labels)
         validation_sampler = SequentialSampler(validation_data)
-        validation_dataloader = DataLoader(validation_data, sampler=validation_sampler, batch_size=self.batch_size)
+        validation_dataloader = DataLoader(
+            validation_data, sampler=validation_sampler, batch_size=self.batch_size)
 
-        return train_data,train_sampler,train_dataloader,validation_data,validation_sampler,validation_dataloader
+        return train_data, train_sampler, train_dataloader, validation_data, validation_sampler, validation_dataloader
 
-    def get_test_set(self,raw_texts):
-        input_ids, attention_masks, labels = self.sentences_conversion(raw_texts=raw_texts)
+    def get_test_set(self, raw_texts):
+        input_ids, attention_masks, labels = self.sentences_conversion(
+            raw_texts=raw_texts)
 
-        print('test_inputs : ',input_ids.shape)
-        print('test_labels : ',labels.shape)
-        print('test_masks : ',len(attention_masks))
+        print('test_inputs : ', input_ids.shape)
+        print('test_labels : ', labels.shape)
+        print('test_masks : ', len(attention_masks))
 
         # 데이터를 파이토치의 텐서로 변환
         test_inputs = torch.tensor(input_ids)
@@ -228,19 +241,20 @@ class Bert_classification():
         # 학습시 배치 사이즈 만큼 데이터를 가져옴
         test_data = TensorDataset(test_inputs, test_masks, test_labels)
         test_sampler = RandomSampler(test_data)
-        test_dataloader = DataLoader(test_data, sampler=test_sampler, batch_size=self.batch_size)
+        test_dataloader = DataLoader(
+            test_data, sampler=test_sampler, batch_size=self.batch_size)
 
-        return test_data,test_sampler,test_dataloader
+        return test_data, test_sampler, test_dataloader
 
     # 정확도 계산 함수
-    def flat_accuracy(self,preds, labels):
+    def flat_accuracy(self, preds, labels):
         pred_flat = np.argmax(preds, axis=1).flatten()
         labels_flat = labels.flatten()
 
         return np.sum(pred_flat == labels_flat) / len(labels_flat)
 
     # 시간 표시 함수
-    def format_time(self,elapsed):
+    def format_time(self, elapsed):
         # 반올림
         elapsed_rounded = int(round((elapsed)))
 
@@ -277,7 +291,8 @@ class Bert_classification():
             # ========================================
 
             print("")
-            print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, self.epochs))
+            print(
+                '======== Epoch {:} / {:} ========'.format(epoch_i + 1, self.epochs))
             print('Training...')
 
             # 시작 시간 설정
@@ -291,7 +306,8 @@ class Bert_classification():
 
             # 데이터로더에서 배치만큼 반복하여 가져옴
             for step, batch in enumerate(train_dataloader):
-                print('Training step : ',step,'.................','of epoch : ',epoch_i)
+                print('Training step : ', step,
+                      '.................', 'of epoch : ', epoch_i)
                 self.model.train()
 
                 two_for_break = False
@@ -299,7 +315,8 @@ class Bert_classification():
                 # 경과 정보 표시
                 if step % self.train_print_period == 0 and not step == 0:
                     elapsed = self.format_time(time.time() - t0)
-                    print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(train_dataloader), elapsed))
+                    print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(
+                        step, len(train_dataloader), elapsed))
                     # ========================================
                     #               Validation
                     # ========================================
@@ -349,20 +366,23 @@ class Bert_classification():
                         label_ids = b_labels.to('cpu').numpy()
 
                         # 출력 로짓과 라벨을 비교하여 정확도 계산
-                        tmp_eval_accuracy = self.flat_accuracy(logits, label_ids)
+                        tmp_eval_accuracy = self.flat_accuracy(
+                            logits, label_ids)
                         eval_accuracy += tmp_eval_accuracy
                         nb_eval_steps += 1
 
-                    print("  Accuracy: {0:.2f}".format(eval_accuracy / nb_eval_steps))
-                    if eval_accuracy/nb_eval_steps >=0.86:
+                    print("  Accuracy: {0:.2f}".format(
+                        eval_accuracy / nb_eval_steps))
+                    if eval_accuracy/nb_eval_steps >= 0.86:
                         print('saving models.....')
                         two_for_break = True
                         torch.save({'model': self.model.state_dict(), 'optimizer': self.optimizer.state_dict()},
-                                   model_save_location +str(step)+'_' +str(epoch_i + 1)+str(eval_accuracy/nb_eval_steps)+'2020_11_23' + '.tar')
+                                   model_save_location + str(step)+'_' + str(epoch_i + 1)+str(eval_accuracy/nb_eval_steps)+'2020_11_23' + '.tar')
                         print('saving models completed!')
-                    print("  Validation took: {:}".format(self.format_time(time.time() - t0)))
+                    print("  Validation took: {:}".format(
+                        self.format_time(time.time() - t0)))
 
-                if two_for_break ==True:
+                if two_for_break == True:
                     print('breaking out successed !')
                     break
 
@@ -385,9 +405,9 @@ class Bert_classification():
 
                 # Forward 수행
                 outputs = self.model(b_input_ids,
-                                token_type_ids=None,
-                                attention_mask=b_input_mask,
-                                labels=b_labels)
+                                     token_type_ids=None,
+                                     attention_mask=b_input_mask,
+                                     labels=b_labels)
 
                 # 로스 구함
                 loss = outputs[0]
@@ -415,9 +435,8 @@ class Bert_classification():
 
             print("")
             print("  Average training loss: {0:.2f}".format(avg_train_loss))
-            print("  Training epcoh took: {:}".format(self.format_time(time.time() - t0)))
-
-
+            print("  Training epcoh took: {:}".format(
+                self.format_time(time.time() - t0)))
 
         print("")
         print("Training complete!")
@@ -440,7 +459,8 @@ class Bert_classification():
             # 경과 정보 표시
             if step % self.test_print_period == 0 and not step == 0:
                 elapsed = self.format_time(time.time() - t0)
-                print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(test_dataloader), elapsed))
+                print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(
+                    step, len(test_dataloader), elapsed))
 
             # 배치를 GPU에 넣음
             batch = tuple(t.to(self.device) for t in batch)
@@ -452,8 +472,8 @@ class Bert_classification():
             with torch.no_grad():
                 # Forward 수행
                 outputs = self.model(b_input_ids,
-                                token_type_ids=None,
-                                attention_mask=b_input_mask)
+                                     token_type_ids=None,
+                                     attention_mask=b_input_mask)
 
             # 로스 구함
             logits = outputs[0]
@@ -469,10 +489,11 @@ class Bert_classification():
 
         print("")
         print("Accuracy: {0:.2f}".format(eval_accuracy / nb_eval_steps))
-        print("Test took: {:}".format(self.format_time( ( (time.time() - t0) ) ) ) )
+        print("Test took: {:}".format(self.format_time(((time.time() - t0)))))
 
-    def work(self,contents_lst):
-        work_data, work_sampler, work_dataloader = self.get_ready_4realwork(contents_lst=contents_lst)
+    def work(self, contents_lst):
+        work_data, work_sampler, work_dataloader = self.get_ready_4realwork(
+            contents_lst=contents_lst)
 
         # 시작 시간 설정
         t0 = time.time()
@@ -484,7 +505,7 @@ class Bert_classification():
         eval_loss, eval_accuracy = 0, 0
         nb_eval_steps, nb_eval_examples = 0, 0
 
-        #lst to append labels
+        # lst to append labels
         label_lst = []
 
         # 데이터로더에서 배치만큼 반복하여 가져옴
@@ -492,7 +513,8 @@ class Bert_classification():
             # 경과 정보 표시
             if step % self.test_print_period == 0 and not step == 0:
                 elapsed = self.format_time(time.time() - t0)
-                print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(work_dataloader), elapsed))
+                print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(
+                    step, len(work_dataloader), elapsed))
 
             # 배치를 GPU에 넣음
             batch = tuple(t.to(self.device) for t in batch)
@@ -512,7 +534,7 @@ class Bert_classification():
             # CPU로 데이터 이동
             logits = logits.detach().cpu()
 
-            softmaxed_logis = (F.softmax(logits,dim=1)).numpy()[:,1]
+            softmaxed_logis = (F.softmax(logits, dim=1)).numpy()[:, 1]
 
             print(f'length of logits is : {len(logits)}')
 
@@ -520,7 +542,8 @@ class Bert_classification():
 
             nb_eval_steps += 1
 
-        print("getting label for work took: {:}".format(self.format_time(((time.time() - t0)))))
+        print("getting label for work took: {:}".format(
+            self.format_time(((time.time() - t0)))))
 
         return label_lst
 
@@ -530,9 +553,11 @@ class Bert_classification():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-e', '--epoch', dest='epoch', type=int, help='epoch number!')
-    parser.add_argument('-b', '--batch_size', dest='batch_size', type=int, help='batch_size number!')
-    parser.add_argument('-w', '--way', dest='way', default='train', type=str, choices=['train','test'],
+    parser.add_argument('-e', '--epoch', dest='epoch',
+                        type=int, help='epoch number!')
+    parser.add_argument('-b', '--batch_size', dest='batch_size',
+                        type=int, help='batch_size number!')
+    parser.add_argument('-w', '--way', dest='way', default='train', type=str, choices=['train', 'test'],
                         help='what do you want to do? train or test?')
     args = parser.parse_args()
 
@@ -541,21 +566,9 @@ if __name__ == '__main__':
     way = args.way
     print(f'doing {way} with epcoh : {epoch} and batch_size : {batch_size}')
 
-    bert = Bert_classification(epoch=epoch,batch_size=batch_size)
+    bert = Bert_classification(epoch=epoch, batch_size=batch_size)
 
     if way == 'train':
         bert.train_and_validate()
     else:
         bert.test()
-
-
-
-
-
-
-
-
-
-
-
-

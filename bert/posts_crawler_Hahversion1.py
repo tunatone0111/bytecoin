@@ -1,11 +1,25 @@
 # system packages
+from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
+import matplotlib.pyplot as plt
+import argparse
+import datetime
+import random
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from keras_preprocessing.sequence import pad_sequences
+from transformers import get_linear_schedule_with_warmup
+from transformers import BertForSequenceClassification, AdamW, BertConfig
+from transformers import BertTokenizer
+import torch
+import csv
+import time
 from bs4 import BeautifulSoup
 import numpy as np
 import requests
 import pandas as pd
 from fake_useragent import UserAgent
 import json
-from multiprocessing import Process,Pool
+from multiprocessing import Process, Pool
 import threading
 import multiprocessing
 # crawler packages
@@ -18,28 +32,7 @@ from stocks_crawler import get_stocks
 from concurrent.futures import ThreadPoolExecutor
 # constants
 TWO_DIGIT_TEMPLATE = "{0:0=2d}"
-import time
-import csv
 
-import torch
-
-from transformers import BertTokenizer
-from transformers import BertForSequenceClassification, AdamW, BertConfig
-from transformers import get_linear_schedule_with_warmup
-from torch.utils.data import TensorDataset,DataLoader,RandomSampler,SequentialSampler
-from keras_preprocessing.sequence import pad_sequences
-from sklearn.model_selection import train_test_split
-import tensorflow as tf
-
-import pandas as pd
-import numpy as np
-import random
-import time
-import datetime
-import os
-import argparse
-import matplotlib.pyplot as plt
-import random
 
 class Crawler():
     def __init__(self):
@@ -56,27 +49,28 @@ class NaverCrawler(Crawler):
     def template(self, stock_code, page):
         return f"https://finance.naver.com/item/board.nhn?code={stock_code}&page={page}"
 
-    def crawl(self, stock_code, max_pages, date,Multi_threading,num_worker):
-        #Multi_threading 은 멀티스레딩을 할 것인지 여부 체크 용도
-        #result = []  # flush result array
+    def crawl(self, stock_code, max_pages, date, Multi_threading, num_worker):
+        # Multi_threading 은 멀티스레딩을 할 것인지 여부 체크 용도
+        # result = []  # flush result array
         proc_id = os.getpid()
         self.max_pages = max_pages
 
-
         if Multi_threading != True:
             for page in range(1, 1 + max_pages):
-                print(f"[page] ({page}/{max_pages}) of stock {stock_code} by process id : {proc_id} and thread : {threading.current_thread()} when not mutithreaded")
-                done = self.crawl_page(stock_code, page, date,threaded=False)
+                print(
+                    f"[page] ({page}/{max_pages}) of stock {stock_code} by process id : {proc_id} and thread : {threading.current_thread()} when not mutithreaded")
+                done = self.crawl_page(stock_code, page, date, threaded=False)
 
         elif Multi_threading == True:
             with ThreadPoolExecutor(max_workers=num_worker) as executor:
-                future2execute =  {executor.submit(self.crawl_page,stock_code,page,date,True):page for page in range(1,1+max_pages)}
+                future2execute = {executor.submit(
+                    self.crawl_page, stock_code, page, date, True): page for page in range(1, 1+max_pages)}
 
     def flush_result(self):
-        #flush result manually
+        # flush result manually
         self.result = multiprocessing.Manager().list()
 
-    def crawl_page(self, stock_code, page, date,threaded):
+    def crawl_page(self, stock_code, page, date, threaded):
         url = self.template(stock_code, page)
         html = requests.get(url, headers=self.headers).text
         soup = BeautifulSoup(html, 'html.parser')
@@ -106,9 +100,10 @@ class NaverCrawler(Crawler):
             self.result.append(post)
 
         proc_id = os.getpid()
-        #threaded는 프린트문 실행 용도
+        # threaded는 프린트문 실행 용도
         if threaded == True:
-            print(f"[page] ({page}/{self.max_pages}) of stock {stock_code} by process id : {proc_id} and thread : {threading.current_thread()}")
+            print(
+                f"[page] ({page}/{self.max_pages}) of stock {stock_code} by process id : {proc_id} and thread : {threading.current_thread()}")
 
     def crawl_post(self, post_link, date):
         try:
@@ -129,12 +124,14 @@ class NaverCrawler(Crawler):
 
             post_content = soup.select_one("#body").get_text('\n', strip=True)
             post_date = soup.select_one(".gray03.p9.tah").get_text()
-            post_date_str2datetime = datetime.datetime.strptime(post_date, '%Y.%m.%d %H:%M')
+            post_date_str2datetime = datetime.datetime.strptime(
+                post_date, '%Y.%m.%d %H:%M')
 
             # "2020.09.11" > "2020.09.10 12:30:15"
             # if the post date is earlier than the given date(comparable)
             if post_date_str2datetime < date:
-                print(f'end bcause {post_date} is ealier than time set : {date}')
+                print(
+                    f'end bcause {post_date} is ealier than time set : {date}')
                 # stop crawling for this post
                 raise DateNotInRangeException("date is not in range")
 
@@ -155,7 +152,7 @@ class NaverCrawler(Crawler):
                 'good_count': post_good_count,
                 'bad_count': post_bad_count,
             }
-            #print(post)
+            # print(post)
 
             return post
 
@@ -168,16 +165,20 @@ class NaverCrawler(Crawler):
         temp_lst = []
         for id_x, i in enumerate(self.result):
             temp_lst.append(i['title'] + ' ' + i['content'])
-            #print(temp_lst)
-        tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased', do_lower_case=False)
-        temp_txt = ["[CLS] " + str(sentence) + " [SEP]" for sentence in temp_lst]
-        temp_tokenized_txt_lst = [tokenizer.tokenize(sentence) for sentence in temp_txt]
+            # print(temp_lst)
+        tokenizer = BertTokenizer.from_pretrained(
+            'bert-base-multilingual-cased', do_lower_case=False)
+        temp_txt = ["[CLS] " + str(sentence) +
+                    " [SEP]" for sentence in temp_lst]
+        temp_tokenized_txt_lst = [tokenizer.tokenize(
+            sentence) for sentence in temp_txt]
         temp_tokenized_txt_len_lst = [len(i) for i in temp_tokenized_txt_lst]
-        #print(temp_tokenized_txt_len_lst)
-        print(f'텍스트 수 : {len(temp_tokenized_txt_len_lst)} 에 대한 제 3분위값 = {np.percentile(temp_tokenized_txt_len_lst,75)}')
-        plt.figure(figsize=(15,10))
-        plt.hist(temp_tokenized_txt_len_lst,bins=100,range=[min(temp_tokenized_txt_len_lst)-10
-                                                                ,100],density=True)
+        # print(temp_tokenized_txt_len_lst)
+        print(
+            f'텍스트 수 : {len(temp_tokenized_txt_len_lst)} 에 대한 제 3분위값 = {np.percentile(temp_tokenized_txt_len_lst,75)}')
+        plt.figure(figsize=(15, 10))
+        plt.hist(temp_tokenized_txt_len_lst, bins=100, range=[
+                 min(temp_tokenized_txt_len_lst)-10, 100], density=True)
         plt.xlabel('lengths of sentences')
         plt.ylabel('probability')
         plt.show()
@@ -186,15 +187,19 @@ class NaverCrawler(Crawler):
         percentile_num = 65
         temp_contents_lst = []
         for id_x, i in enumerate(self.result):
-            temp_contents_lst.append([i['title'] + ' ' + i['content'],i])
+            temp_contents_lst.append([i['title'] + ' ' + i['content'], i])
 
-        tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased', do_lower_case=False)
-        temp_txt_lst = ["[CLS] " + str(sentence) + " [SEP]" for sentence,other_content in temp_contents_lst]
+        tokenizer = BertTokenizer.from_pretrained(
+            'bert-base-multilingual-cased', do_lower_case=False)
+        temp_txt_lst = [
+            "[CLS] " + str(sentence) + " [SEP]" for sentence, other_content in temp_contents_lst]
 
-        temp_tokenized_txt_lst = [[tokenizer.tokenize(sentence),len(tokenizer.tokenize(sentence))] for sentence in temp_txt_lst]
-        mask = [txt[1]<65 for txt in temp_tokenized_txt_lst]
+        temp_tokenized_txt_lst = [[tokenizer.tokenize(sentence), len(
+            tokenizer.tokenize(sentence))] for sentence in temp_txt_lst]
+        mask = [txt[1] < 65 for txt in temp_tokenized_txt_lst]
 
-        contents_lst_shorter = [contents[1] for id_x,contents in enumerate(temp_contents_lst) if mask[id_x]]
+        contents_lst_shorter = [contents[1] for id_x, contents in enumerate(
+            temp_contents_lst) if mask[id_x]]
 
         return contents_lst_shorter
 
@@ -204,11 +209,10 @@ if __name__ == "__main__":
     nc = NaverCrawler()
     #max_pool = 4
     num_cores = multiprocessing.cpu_count()
-    print('number of cores :      ',num_cores)
+    print('number of cores :      ', num_cores)
 
     stock_code_list = get_stocks()
     print(len(stock_code_list))
-
 
     fr = {
         'year': 2020,
@@ -233,27 +237,20 @@ if __name__ == "__main__":
     p.join()
     gr = time.time()
     print('lengh of nc.result is :       ', len(nc.result))
-    #for i in nc.result:
-        #print('title is :',type(i['title']),'content is : ',type(i['content']))
+    # for i in nc.result:
+    #print('title is :',type(i['title']),'content is : ',type(i['content']))
     print('time spent when 8 proceesse and 5 thread per process for 16 jobs and 10 pages per job : ', gr - g)
 
     test_lst = nc.remove_2longsent()
-    #random.shuffle(test_lst)
+    # random.shuffle(test_lst)
     #test_lst2 = []
     #num_limit = 1000
-    #for idx,i in enumerate(test_lst):
+    # for idx,i in enumerate(test_lst):
     #    if idx<num_limit:
     #        print(i)
     #datas = {'text':test_lst[:num_limit]}
     #dataframe = pd.DataFrame(datas,columns=['text'])
-    #dataframe.to_csv("/home/awefjio12345/Downloads/crawl_txt_list/test.csv",header=False,index=False,encoding='utf-8-sig')
-
-
-
-
-
-
-
+    # dataframe.to_csv("/home/awefjio12345/Downloads/crawl_txt_list/test.csv",header=False,index=False,encoding='utf-8-sig')
 
 
 '''    
