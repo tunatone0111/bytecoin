@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 
 from .config import config_by_name, kospi_100
 
@@ -13,5 +14,7 @@ def create_app(config_name):
 
     app.register_blueprint(game, url_prefix='/api/game')
     app.register_blueprint(stocks, url_prefix='/api/stocks')
+
+    CORS(app)
 
     return app
