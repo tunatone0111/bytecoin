@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import argparse
 import datetime
 import random
-import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from keras_preprocessing.sequence import pad_sequences
 from transformers import get_linear_schedule_with_warmup
@@ -23,12 +22,12 @@ from multiprocessing import Process, Pool
 import threading
 import multiprocessing
 # crawler packages
-from urltools import get_query
-from mongodb import get_db
-from stock_sources import NAVER
-from errors import DateNotInRangeException, HTMLElementNotFoundException
+from ..urltools import get_query
+from ..mongodb import get_db
+from ..stock_sources import NAVER
+from ..errors import DateNotInRangeException, HTMLElementNotFoundException
 import os
-from stocks_crawler import get_stocks
+from ..stocks_crawler import get_stocks
 from concurrent.futures import ThreadPoolExecutor
 # constants
 TWO_DIGIT_TEMPLATE = "{0:0=2d}"

@@ -6,7 +6,6 @@ from transformers import get_linear_schedule_with_warmup
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras_preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
 
 import pandas as pd
 import numpy as np
@@ -36,14 +35,14 @@ class Bert_classification():
         self.MAX_LEN = 128
         self.batch_size = batch_size
 
-        # GPU 디바이스 이름 구함
-        self.device_name = tf.test.gpu_device_name()
+        # # GPU 디바이스 이름 구함
+        # self.device_name = tf.test.gpu_device_name()
 
-        # GPU 디바이스 이름 검사
-        if self.device_name == '/device:GPU:0':
-            print('Found GPU at: {}'.format(self.device_name))
-        else:
-            raise SystemError('GPU device not found')
+        # # GPU 디바이스 이름 검사
+        # if self.device_name == '/device:GPU:0':
+        #     print('Found GPU at: {}'.format(self.device_name))
+        # else:
+        #     raise SystemError('GPU device not found')
 
         # 디바이스 설정
         if torch.cuda.is_available():
