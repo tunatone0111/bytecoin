@@ -1,5 +1,6 @@
 from ...db import get_db
 from ...config import kospi_100
+from pykrx import stock
 
 db = get_db()
 stocks = db['StocksWithLabel']
@@ -33,5 +34,28 @@ def get_current_stock_price(code):
     return stocks.find_one({'code': code}, {'price': True})['price'][0]
 
 
-def get_posts_by_stock_code(code):
-    return list(posts.find({'code': code}))
+def read_stock_with_posts(code):
+    pipeline=[{
+        '$match': {'code': code}
+    },{
+        '$lookup': {
+            'from': 'Posts', 
+            'let': {
+                'c': '$code'
+            }, 
+            'pipeline': [{
+                '$match': {
+                    '$expr': {'$eq': ['$code', '$$c']}
+                    }
+                }, {
+                    '$project': {'_id': False}
+                }
+            ],
+            'as': 'posts'
+        }
+    },{
+        '$project': {'_id': False}
+    }
+    ]
+    return list(stocks.aggregate(pipeline))[0]
+

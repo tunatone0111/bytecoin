@@ -4,7 +4,6 @@ from ...db import get_db
 db = get_db()
 users = db['Users']
 
-
 def read_users():
     result = list(users.find(projection={'_id': False}))
     return result

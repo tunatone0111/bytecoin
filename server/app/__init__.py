@@ -14,6 +14,10 @@ def create_app(config_name):
     app.config.from_object(config_by_name[config_name])
     app.config['JSON_AS_ASCII'] = False
 
+    @app.route('/')
+    def index():
+        return 'root dir'
+
     app.register_blueprint(game, url_prefix='/api/game')
     app.register_blueprint(stocks, url_prefix='/api/stocks')
     app.register_blueprint(proxy, url_prefix='/api/proxy')
