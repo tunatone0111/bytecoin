@@ -8,8 +8,8 @@ posts = db['Posts']
 dto_projection = {'name': True, 'code': True, '_id': False, 'label': True, 'numPosts': True}
 
 
-def read_all():
-    return list(stocks.find({}, dto_projection))
+def read_all(filt={}):
+    return list(stocks.find(filt, dto_projection))
 
 
 def read_top5():

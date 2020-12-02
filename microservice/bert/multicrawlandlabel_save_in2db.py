@@ -175,8 +175,6 @@ class multicrawl_and_return():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    # model path /home/aistartup/bytecoin/microservice/bert/models/movie.tar
-
     parser.add_argument('-M', '--modelload_loc', dest='model_load_loc', default=None, type=str, help='Location of model you want to load, format'
                         ': ~/home/abc123/model.tar')
     parser.add_argument('-t', '--threads', dest='threads',
