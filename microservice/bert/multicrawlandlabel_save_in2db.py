@@ -1,3 +1,4 @@
+#!/home/aistartup/.config/nvim/env/bin/python
 # system packages
 
 from bs4 import BeautifulSoup
@@ -25,33 +26,35 @@ import random
 import time
 import datetime
 import os
+import sys
 import argparse
 import matplotlib.pyplot as plt
 import random
 from tqdm.contrib.concurrent import process_map
 from tqdm import tqdm, trange
 from itertools import repeat
+import pytz
 
 # crawler packages
-from ..urltools import get_query
-from ..mongodb import get_db
-from ..stock_sources import NAVER
-from ..errors import DateNotInRangeException, HTMLElementNotFoundException
-from ..stocks_crawler import get_stocks
-from .posts_crawler_Hahversion1 import NaverCrawler
-from .bert_classificaion_main import Bert_classification
+from urltools import get_query
+from mongodb import get_db
+from stock_sources import NAVER
+from errors import DateNotInRangeException, HTMLElementNotFoundException
+from stocks_crawler import get_stocks
+from posts_crawler_Hahversion1 import NaverCrawler
+from bert_classificaion_main import Bert_classification
 
 # constants
 how_old = 10
-from .bert_config import KOSPI100
+from bert_config import KOSPI100
 
 
 class multicrawl_and_return():
-    def __init__(self, num_pages=100, days=0, hours=0, minutes=10, model_load=None, num_process=multiprocessing.cpu_count(), multiprocessing_flag=False, num_thread=5, MAX_LEN=65, epoch=1, batch_size=32, timed=False, when=None):
+    def __init__(self, num_pages=100, days=0, hours=0, minutes=10, model_load=None, num_process=multiprocessing.cpu_count(), multiprocessing_flag=True, num_thread=16, MAX_LEN=65, epoch=1, batch_size=32, timed=False, when=None):
 
         if timed == True:
-            self.date = datetime.datetime.now() - datetime.timedelta(days=days,
-                                                                     hours=hours, minutes=minutes)
+            self.date = datetime.datetime.now() + datetime.timedelta(days=0, hours=9, minutes=0) - datetime.timedelta(days=days, hours=hours, minutes=minutes)
+            print(self.date)
         else:
             self.date = when
         self.MAX_LEN = MAX_LEN
@@ -64,22 +67,16 @@ class multicrawl_and_return():
         self.num_thread = num_thread
         self.multiprocessing_flag = multiprocessing_flag
 
-        db = get_db()
-        coll = db['Stocks']
-        # self.stock_code_lst = [{'name': '삼성전자', 'code': '005930'}]
-        self.stock_code_lst = list(coll.find({"name": {"$in": KOSPI100}}, {"_id": False, "name": True, "code": True}))
-
+        self.db = get_db()
         self.crawl_lst = self.make_crawl_lst()
 
+        print('loading inference model...')
         self.model = NaverCrawler()
 
     def make_crawl_lst(self):
         print('finding stock ids...')
-        temp_crawl_lst = []
-        for i in trange(len(self.stock_code_lst)):
-            temp_crawl_lst.append(self.stock_code_lst[i]['code'])
-
-        return tuple(zip(temp_crawl_lst, 
+        self.stock_code_lst = [x['code'] for x in self.db['Stocks'].find({"name": {"$in": KOSPI100}}, {"code": True})]
+        return tuple(zip(self.stock_code_lst, 
                         repeat(self.num_pages), 
                         repeat(self.date), 
                         repeat(self.multiprocessing_flag), 
@@ -163,16 +160,16 @@ class multicrawl_and_return():
 
     def save_result2db(self):
         contents_lst = self.combine_label_and_contents_lst()
-        db = get_db()
-        coll = db['Posts']
-        coll.drop()
-        coll.insert_many(contents_lst)
+        coll = self.db['Posts']
+        for content in contents_lst:
+            coll.replace_one({'id': content['id']}, content, upsert=True)
+        # coll.insert_many(contents_lst)
 
         self.model.flush_result()
         print('Saving files Completed!')
-        doc = coll.find()
-        for i in doc:
-            print('is is : ', i)
+        # doc = coll.find()
+        # for i in doc:
+        #     print('is is : ', i)
 
 
 if __name__ == '__main__':
@@ -189,9 +186,9 @@ if __name__ == '__main__':
     parser.add_argument('-H', '--hours', dest='hours',
                         default=0, type=int, help='몇시간 뒤로 가고싶으신가요?')
     parser.add_argument('-m', '--minutes', dest='minutes',
-                        default=10, type=int, help='몇분 뒤로 가고 싶으신가요?')
+                        default=0, type=int, help='몇분 뒤로 가고 싶으신가요?')
     parser.add_argument('-b', '--batch_size', dest='batch_size',
-                        default=4, type=int, help='batch_size number!')
+                        default=32, type=int, help='batch_size number!')
     parser.add_argument('-w', '--way', dest='way', default='timed', type=str, choices=['timed', 'date'],
                         help='what do you want to do? train or test?')
     args = parser.parse_args()
@@ -205,13 +202,14 @@ if __name__ == '__main__':
     num_process = args.process
     model_load = args.model_load_loc
 
+    os.system('clear')
     s_time = time.time()
 
     if way == 'timed':
         multicrawl = multicrawl_and_return(batch_size=batch_size, days=days, hours=hours, minutes=minutes,
                                            timed=True, model_load=model_load, num_thread=num_thread, num_process=num_process)
         do_it = multicrawl.save_result2db()
-        print(multicrawl.model.result)
+        # print(multicrawl.model.result)
     elif way == 'date':
         print('년월일시분 순으로 다음 포맷과 같이 입력하세요 : 2020-12-01-07-30')
         date = input()
@@ -219,7 +217,7 @@ if __name__ == '__main__':
         multicrawl = multicrawl_and_return(batch_size=batch_size, days=days, hours=hours, minutes=minutes,
                                            timed=False, model_load=model_load, when=datetime_date, num_thread=num_thread, num_process=num_process)
         do_it = multicrawl.save_result2db()
-        print(multicrawl.model.result)
+        # print(multicrawl.model.result[0])
     else:
         print('NOOOOOO! input is timed or date only!')
 

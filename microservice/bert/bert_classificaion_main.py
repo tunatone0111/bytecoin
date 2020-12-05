@@ -7,6 +7,7 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from keras_preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 
+from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import random
@@ -146,7 +147,7 @@ class Bert_classification():
         # 문장을 MAX_LEN 길이에 맞게 자르고, 모자란 부분을 패딩 0으로 채움
         input_ids = pad_sequences(input_ids, maxlen=self.MAX_LEN, dtype="long", truncating="post",
                                   padding="post")
-        print(input_ids[0])
+        # print(input_ids[0])
 
         # 어텐션 마스크 초기화
         attention_masks = []
@@ -157,14 +158,14 @@ class Bert_classification():
             seq_mask = [float(i > 0) for i in seq]
             attention_masks.append(seq_mask)
 
-        print(attention_masks[0])
+        # print(attention_masks[0])
 
         # 데이터를 파이토치의 텐서로 변환
         work_inputs = torch.tensor(input_ids)
         work_masks = torch.tensor(attention_masks)
 
-        print(work_inputs[0])
-        print(work_masks[0])
+        # print(work_inputs[0])
+        # print(work_masks[0])
 
         # 파이토치의 DataLoader로 입력, 마스크, 라벨을 묶어 데이터 설정
         # 학습시 배치 사이즈 만큼 데이터를 가져옴
@@ -513,7 +514,7 @@ class Bert_classification():
         label_lst = []
 
         # 데이터로더에서 배치만큼 반복하여 가져옴
-        for step, batch in enumerate(work_dataloader):
+        for step, batch in enumerate(tqdm(work_dataloader, desc='Forward')):
             # 경과 정보 표시
             if step % self.test_print_period == 0 and not step == 0:
                 elapsed = self.format_time(time.time() - t0)
@@ -540,7 +541,7 @@ class Bert_classification():
 
             softmaxed_logis = (F.softmax(logits, dim=1)).numpy()[:, 1]
 
-            print(f'length of logits is : {len(logits)}')
+            # print(f'length of logits is : {len(logits)}')
 
             label_lst += softmaxed_logis.tolist()
 

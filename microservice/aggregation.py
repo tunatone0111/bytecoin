@@ -1,8 +1,9 @@
-from .mongodb import get_db
+from mongodb import get_db
+import datetime
+from pytz import timezone
 
-db = get_db()
-cache = db['StocksCache']
-cache.drop()
+ctime = datetime.datetime.now() + datetime.timedelta(hours=9)
+ttime = ctime - datetime.timedelta(days=1)
 
 pipeline = [{
   '$lookup': {
@@ -12,7 +13,10 @@ pipeline = [{
       },
     'pipeline': [{
       '$match': {
-        '$expr': {'$eq': ['$code','$$c']}
+        '$expr': {'$and': [
+          {'$eq': ['$code','$$c']},
+          {'$gt': ['$date', ttime]}
+        ]}
       }
       },{
       '$group': {
@@ -35,5 +39,7 @@ pipeline = [{
   'numPosts': '$label.count'
 }}, {'$out': 'StocksCache'}]
 
-stocks = db['Stocks']
-stocks.aggregate(pipeline)
+db = get_db()
+db['Stocks'].aggregate(pipeline)
+
+print(f'[SUCCESS] aggregation complete, ${ctime} to ${ttime}')

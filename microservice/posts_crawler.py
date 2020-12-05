@@ -5,9 +5,9 @@ from fake_useragent import UserAgent
 from tqdm import tqdm
 
 # crawler packages
-from .urltools import get_query
-from .stock_sources import NAVER
-from .errors import DateNotInRangeException, HTMLElementNotFoundException
+from urltools import get_query
+from stock_sources import NAVER
+from errors import DateNotInRangeException, HTMLElementNotFoundException
 
 # constants
 TWO_DIGIT_TEMPLATE = "{0:0=2d}"

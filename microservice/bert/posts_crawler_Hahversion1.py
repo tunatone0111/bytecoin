@@ -24,13 +24,14 @@ import multiprocessing
 import os
 from tqdm import trange
 from tqdm.contrib.concurrent import thread_map
+import logging
 
 # crawler packages
-from ..urltools import get_query
-from ..mongodb import get_db
-from ..stock_sources import NAVER
-from ..errors import DateNotInRangeException, HTMLElementNotFoundException
-from ..stocks_crawler import get_stocks
+from urltools import get_query
+from mongodb import get_db
+from stock_sources import NAVER
+from errors import DateNotInRangeException, HTMLElementNotFoundException
+from stocks_crawler import get_stocks
 from concurrent.futures import ThreadPoolExecutor
 # constants
 TWO_DIGIT_TEMPLATE = "{0:0=2d}"
@@ -60,11 +61,11 @@ class NaverCrawler(Crawler):
         proc_id = os.getpid()
         self.max_pages = max_pages
 
-        for page in trange(1, 1 + max_pages, desc='%s' % stock_code):
+        for page in trange(1, 1 + max_pages, desc='%s' % stock_code, leave=False, disable=True):
             try:
                 # print(
                     # f"[page] ({page}/{max_pages}) of stock {stock_code} by process id : {proc_id} and thread : {threading.current_thread()} when not mutithreaded")
-                done = self.crawl_page(stock_code, page, date, threaded=Multi_threading)
+                done = self.crawl_page(stock_code, page, date, threaded=Multi_threading, num_threads=num_worker)
             except DateNotInRangeException as e:
                 # print(e)
                 break  # stop crawling when post date is earlier than the limit
@@ -73,7 +74,7 @@ class NaverCrawler(Crawler):
         # flush result manually
         self.result = multiprocessing.Manager().list()
 
-    def crawl_page(self, stock_code, page, date, threaded):
+    def crawl_page(self, stock_code, page, date, threaded, num_threads):
         url = self.template(stock_code, page)
         html = requests.get(url, headers=self.headers).text
         soup = BeautifulSoup(html, 'html.parser')
@@ -98,13 +99,13 @@ class NaverCrawler(Crawler):
             self.result.append(post)
 
         # visit all post links and crawl them.
-        thread_map(thread_task, post_links, max_workers=16, leave=False, desc='posts')
+        thread_map(thread_task, post_links, max_workers=num_threads, leave=False, desc='posts', disable=True)
 
         proc_id = os.getpid()
         # threaded는 프린트문 실행 용도
-        if threaded == True:
-            print(
-                f"[page] ({page}/{self.max_pages}) of stock {stock_code} by process id : {proc_id} and thread : {threading.current_thread()}")
+        # if threaded == True:
+        #     print(
+        #         f"[page] ({page}/{self.max_pages}) of stock {stock_code} by process id : {proc_id} and thread : {threading.current_thread()}")
 
     def crawl_post(self, post_link, date):
         try:
@@ -147,11 +148,11 @@ class NaverCrawler(Crawler):
                 'code': stock_code,  # stock code
                 'link': post_link,
                 'title': post_title,
-                'date': post_date,
-                'views': post_views,
+                'date': post_date_str2datetime,
+                'views': int(post_views),
                 'content': post_content,
-                'good_count': post_good_count,
-                'bad_count': post_bad_count,
+                'good_count': int(post_good_count),
+                'bad_count': int(post_bad_count),
             }
             # print(post)
 
