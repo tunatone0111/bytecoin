@@ -3,7 +3,7 @@ from ...config import kospi_100
 from pykrx import stock
 
 db = get_db()
-stocks = db['StocksWithLabel']
+stocks = db['StocksCache']
 posts = db['Posts']
 
 dto_projection = {'name': True, 'code': True, '_id': False, 'label': True, 'numPosts': True}

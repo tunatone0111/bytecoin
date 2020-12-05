@@ -22,6 +22,9 @@ from multiprocessing import Process, Pool
 import threading
 import multiprocessing
 import os
+from tqdm import trange
+from tqdm.contrib.concurrent import thread_map
+
 # crawler packages
 from ..urltools import get_query
 from ..mongodb import get_db
@@ -48,22 +51,23 @@ class NaverCrawler(Crawler):
     def template(self, stock_code, page):
         return f"https://finance.naver.com/item/board.nhn?code={stock_code}&page={page}"
 
-    def crawl(self, stock_code, max_pages, date, Multi_threading, num_worker):
+    def crawl(self, args):
+        """input args: (stock_code, max_pages, date, Multi_threading, num_worker)"""
+        stock_code, max_pages, date, Multi_threading, num_worker = args
+
         # Multi_threading 은 멀티스레딩을 할 것인지 여부 체크 용도
         # result = []  # flush result array
         proc_id = os.getpid()
         self.max_pages = max_pages
 
-        if Multi_threading != True:
-            for page in range(1, 1 + max_pages):
-                print(
-                    f"[page] ({page}/{max_pages}) of stock {stock_code} by process id : {proc_id} and thread : {threading.current_thread()} when not mutithreaded")
-                done = self.crawl_page(stock_code, page, date, threaded=False)
-
-        elif Multi_threading == True:
-            with ThreadPoolExecutor(max_workers=num_worker) as executor:
-                future2execute = {executor.submit(
-                    self.crawl_page, stock_code, page, date, True): page for page in range(1, 1+max_pages)}
+        for page in trange(1, 1 + max_pages, desc='%s' % stock_code):
+            try:
+                # print(
+                    # f"[page] ({page}/{max_pages}) of stock {stock_code} by process id : {proc_id} and thread : {threading.current_thread()} when not mutithreaded")
+                done = self.crawl_page(stock_code, page, date, threaded=Multi_threading)
+            except DateNotInRangeException as e:
+                # print(e)
+                break  # stop crawling when post date is earlier than the limit
 
     def flush_result(self):
         # flush result manually
@@ -89,14 +93,12 @@ class NaverCrawler(Crawler):
             post_links.append("https://finance.naver.com" +
                               a_tag_element['href'])
 
-        # visit all post links and crawl them.
-        for post_link in post_links:
-            try:
-                post = self.crawl_post(post_link, date)
-            except DateNotInRangeException as e:
-                print(e)
-                break  # stop crawling when post date is earlier than the limit
+        def thread_task(post_link):
+            post = self.crawl_post(post_link, date)
             self.result.append(post)
+
+        # visit all post links and crawl them.
+        thread_map(thread_task, post_links, max_workers=16, leave=False, desc='posts')
 
         proc_id = os.getpid()
         # threaded는 프린트문 실행 용도
@@ -129,8 +131,8 @@ class NaverCrawler(Crawler):
             # "2020.09.11" > "2020.09.10 12:30:15"
             # if the post date is earlier than the given date(comparable)
             if post_date_str2datetime < date:
-                print(
-                    f'end bcause {post_date} is ealier than time set : {date}')
+                # print(
+                #     f'end bcause {post_date} is ealier than time set : {date}')
                 # stop crawling for this post
                 raise DateNotInRangeException("date is not in range")
 
@@ -157,7 +159,7 @@ class NaverCrawler(Crawler):
 
         except AttributeError as e:
             # catches if any HTML element does not exist.
-            print(e)
+            # print(e)
             raise HTMLElementNotFoundException("Parsing Failed")
 
     def percentile_check(self):

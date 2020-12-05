@@ -28,6 +28,10 @@ import os
 import argparse
 import matplotlib.pyplot as plt
 import random
+from tqdm.contrib.concurrent import process_map
+from tqdm import tqdm, trange
+from itertools import repeat
+
 # crawler packages
 from ..urltools import get_query
 from ..mongodb import get_db
@@ -43,7 +47,7 @@ from .bert_config import KOSPI100
 
 
 class multicrawl_and_return():
-    def __init__(self, num_pages=1, days=0, hours=0, minutes=10, model_load=None, num_process=multiprocessing.cpu_count(), multiprocessing_flag=True, num_thread=5, MAX_LEN=65, epoch=1, batch_size=32, timed=False, when=None):
+    def __init__(self, num_pages=100, days=0, hours=0, minutes=10, model_load=None, num_process=multiprocessing.cpu_count(), multiprocessing_flag=False, num_thread=5, MAX_LEN=65, epoch=1, batch_size=32, timed=False, when=None):
 
         if timed == True:
             self.date = datetime.datetime.now() - datetime.timedelta(days=days,
@@ -62,6 +66,7 @@ class multicrawl_and_return():
 
         db = get_db()
         coll = db['Stocks']
+        # self.stock_code_lst = [{'name': '삼성전자', 'code': '005930'}]
         self.stock_code_lst = list(coll.find({"name": {"$in": KOSPI100}}, {"_id": False, "name": True, "code": True}))
 
         self.crawl_lst = self.make_crawl_lst()
@@ -69,24 +74,21 @@ class multicrawl_and_return():
         self.model = NaverCrawler()
 
     def make_crawl_lst(self):
+        print('finding stock ids...')
         temp_crawl_lst = []
-        for i in range(len(self.stock_code_lst)):
+        for i in trange(len(self.stock_code_lst)):
             temp_crawl_lst.append(self.stock_code_lst[i]['code'])
 
-        crawl_lst = []
-        for i in temp_crawl_lst:
-            crawl_lst += [[i, self.num_pages, self.date,
-                           self.multiprocessing_flag, self.num_thread]]
-
-        return crawl_lst
+        return tuple(zip(temp_crawl_lst, 
+                        repeat(self.num_pages), 
+                        repeat(self.date), 
+                        repeat(self.multiprocessing_flag), 
+                        repeat(self.num_thread)))
 
     def multi_crawl_and_filter2longsent(self):
         print('start crawling...')
         g = time.time()
-        p = Pool(processes=self.num_process)
-        p.starmap(self.model.crawl, self.crawl_lst[:])
-        p.close()
-        p.join()
+        process_map(self.model.crawl, self.crawl_lst[:], max_workers=self.num_process, desc="stocks")
         gr = time.time()
         print('lengh of nc.result is :       ', len(self.model.result))
         # for i in nc.result:
@@ -163,6 +165,7 @@ class multicrawl_and_return():
         contents_lst = self.combine_label_and_contents_lst()
         db = get_db()
         coll = db['Posts']
+        coll.drop()
         coll.insert_many(contents_lst)
 
         self.model.flush_result()
@@ -202,6 +205,8 @@ if __name__ == '__main__':
     num_process = args.process
     model_load = args.model_load_loc
 
+    s_time = time.time()
+
     if way == 'timed':
         multicrawl = multicrawl_and_return(batch_size=batch_size, days=days, hours=hours, minutes=minutes,
                                            timed=True, model_load=model_load, num_thread=num_thread, num_process=num_process)
@@ -217,3 +222,5 @@ if __name__ == '__main__':
         print(multicrawl.model.result)
     else:
         print('NOOOOOO! input is timed or date only!')
+
+    print(f'time: {time.time()-s_time}')
