@@ -3,6 +3,7 @@ import torch
 from transformers import BertTokenizer
 from transformers import BertForSequenceClassification, AdamW, BertConfig
 from transformers import get_linear_schedule_with_warmup
+from kobert_transformers import get_tokenizer
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from keras_preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
@@ -59,11 +60,11 @@ class Bert_classification():
         # 분류를 위한 BERT 모델 생성
         if model_load_location == None:
             self.model = BertForSequenceClassification.from_pretrained(
-                "bert-base-multilingual-cased", num_labels=2)
+                "monologg/kobert", num_labels=2)
             # self.model.cuda()
         else:
             self.model = BertForSequenceClassification.from_pretrained(
-                "bert-base-multilingual-cased", num_labels=2)
+                "monologg/kobert", num_labels=2)
             checkpoint = torch.load(model_load_location, map_location=self.device)
             self.model.load_state_dict(checkpoint['model'])
             # self.model.cuda()
@@ -99,8 +100,9 @@ class Bert_classification():
         print('labels is :    ', labels)
 
         # BERT의 토크나이저로 문장을 토큰으로 분리
-        tokenizer = BertTokenizer.from_pretrained(
-            'bert-base-multilingual-cased', do_lower_case=False)
+        # tokenizer = BertTokenizer.from_pretrained(
+        #     'bert-base-multilingual-cased', do_lower_case=False)
+        tokenizer = get_tokenizer()
         tokenized_texts = [tokenizer.tokenize(sent) for sent in sentences]
         print(sentences[0])
         print(tokenized_texts[0])
@@ -134,8 +136,9 @@ class Bert_classification():
                      " [SEP]" for sentence in contents_lst]
         sentences[:10]
         # BERT의 토크나이저로 문장을 토큰으로 분리
-        tokenizer = BertTokenizer.from_pretrained(
-            'bert-base-multilingual-cased', do_lower_case=False)
+        # tokenizer = BertTokenizer.from_pretrained(
+        #     'bert-base-multilingual-cased', do_lower_case=False)
+        tokenizer = get_tokenizer()
         tokenized_texts = [tokenizer.tokenize(sent) for sent in sentences]
         print(sentences[0])
         print(tokenized_texts[0])
