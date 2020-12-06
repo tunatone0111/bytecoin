@@ -591,7 +591,7 @@ if __name__ == '__main__':
                                    model_save_location=model_save_loc, model_load_location=model_load_loc)
         bert.train_and_validate(train=train_set)
     elif way == 'test':
-        test_set = pd.read_csv(testset_loc, sep='\t')
+        test_set = pd.read_csv(testset_loc, sep=',', names=['document', 'label', 'trash'])
         bert = Bert_classification(epoch=epoch, batch_size=batch_size,
                                    model_save_location=model_save_loc, model_load_location=model_load_loc)
         bert.test(test=test_set)
